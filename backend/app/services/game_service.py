@@ -37,18 +37,13 @@ class GameService:
             current_board_cards = [str(card) for card in pk_state.board_cards]
         
         player_hole_cards: Dict[int, List[str]] = {}
-        if pk_state.status is False:
-            for i in range(pk_state.player_count):
-                if 0 <= i < len(pk_state.hole_cards):
-                    hole_cards_for_player_i = pk_state.hole_cards[i]
-                    if hole_cards_for_player_i:
-                        player_hole_cards[i] = [str(card) for card in hole_cards_for_player_i]
-        elif human_player_index is not None and pk_state.actor_index == human_player_index:
-            if 0 <= human_player_index < len(pk_state.hole_cards):
-                human_cards_for_player = pk_state.hole_cards[human_player_index]
-                if human_cards_for_player:
-                    player_hole_cards[human_player_index] = [str(card) for card in human_cards_for_player]
-        
+        # DEBUG: Always show all hole cards
+        for i in range(pk_state.player_count):
+            if 0 <= i < len(pk_state.hole_cards):
+                hole_cards_for_player_i = pk_state.hole_cards[i]
+                if hole_cards_for_player_i:
+                    player_hole_cards[i] = [str(card) for card in hole_cards_for_player_i]
+
         current_round_name = "PRE_FLOP"
         if pk_state.status is False:
             if pk_state.showdown_indices:
@@ -150,40 +145,59 @@ class GameService:
         """
         Processes an action from a human player.
         Validates the action and updates the PokerKit state.
+        The human_player_index is now confirmed by the API endpoint before calling this.
         """
         pk_state = self.game_manager.get_game_state(game_id)
+        # Create a default error response shell, to be populated if issues arise early
+        default_error_response_shell = GameStateResponse(
+            game_id=game_id, status=False, player_count=0, button_index=0, 
+            actor_index=None, stacks=[], bets=[], pot_total=0, board_cards=[]
+        )
+
         if not pk_state:
-            return GameStateResponse(game_id=game_id, status=False, error_message="Game not found", player_count=0, button_index=0, actor_index=None, stacks=[], bets=[], pot_total=0, board_cards=[])
+            default_error_response_shell.error_message = "Game not found"
+            return default_error_response_shell
 
         if pk_state.actor_index != human_player_index:
             response = self._pokerkit_state_to_api_response(game_id, pk_state, human_player_index)
             response.error_message = f"Not player {human_player_index}'s turn. Current actor is {pk_state.actor_index}."
             return response
         
-        action_taken_details = {"player_index": human_player_index, "action": action_request.action_type}
+        action_taken_details = {"player_index": human_player_index, "action_type": action_request.action_type} # Renamed "action" to "action_type" for consistency
 
         try:
-            if action_request.action_type == "fold":
+            action_type_lower = action_request.action_type.lower()
+
+            if action_type_lower == "fold":
                 if pk_state.can_fold():
                     pk_state.fold()
                 else:
                     raise ValueError("Cannot fold at this time.")
-            elif action_request.action_type == "check_or_call":
+            elif action_type_lower == "check" or action_type_lower == "call": # Frontend might send "check" or "call" separately
                 if pk_state.can_check_or_call():
-                    action_taken_details["amount"] = pk_state.checking_or_calling_amount
+                    action_taken_details["amount_called"] = pk_state.checking_or_calling_amount
                     pk_state.check_or_call()
                 else:
                     raise ValueError("Cannot check or call at this time.")
-            elif action_request.action_type == "raise" or action_request.action_type == "bet":
+            # Frontend sends "bet" for initial bet in a round, "raise" for subsequent raises.
+            # PokerKit uses complete_bet_or_raise_to for both.
+            elif action_type_lower == "raise" or action_type_lower == "bet": 
                 if action_request.amount is None:
-                    raise ValueError("Amount must be provided for a raise/bet action.")
+                    raise ValueError("Amount must be provided for a bet/raise action.")
+                
+                # Ensure the action is valid with the provided amount
                 if pk_state.can_complete_bet_or_raise_to(action_request.amount):
                     pk_state.complete_bet_or_raise_to(action_request.amount)
-                    action_taken_details["amount"] = action_request.amount
+                    action_taken_details["amount_raised_to"] = action_request.amount
                 else:
-                    min_raise = pk_state.min_completion_betting_or_raising_to_amount
-                    max_raise = pk_state.max_completion_betting_or_raising_to_amount
-                    raise ValueError(f"Invalid raise amount. Min: {min_raise}, Max: {max_raise}, Got: {action_request.amount}")
+                    min_bet_raise = pk_state.min_completion_betting_or_raising_to_amount
+                    max_bet_raise = pk_state.max_completion_betting_or_raising_to_amount
+                    current_bet_to_call = pk_state.checking_or_calling_amount
+                    error_detail = f"Invalid bet/raise amount: {action_request.amount}. Current bet to call: {current_bet_to_call}. Min total: {min_bet_raise}, Max total: {max_bet_raise}."
+                    # Add more context if it's a bet (no prior bet to call)
+                    if current_bet_to_call == 0:
+                        error_detail = f"Invalid bet amount: {action_request.amount}. Min bet: {min_bet_raise}, Max bet: {max_bet_raise}."
+                    raise ValueError(error_detail)
             else:
                 raise ValueError(f"Unknown action type: {action_request.action_type}")
             
@@ -192,6 +206,8 @@ class GameService:
             response.error_message = str(e)
             return response
 
+        # If action was successful, update the game state and last action details
+        self.game_manager.update_game_state(game_id, pk_state) # Persist the change
         response = self._pokerkit_state_to_api_response(game_id, pk_state, human_player_index)
         response.last_action_details = action_taken_details
         return response

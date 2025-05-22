@@ -4,9 +4,10 @@ import PlayerDisplay from './PlayerDisplay';
 
 interface PokerTableProps {
     gameState: GameStateResponse | null;
+    humanPlayerIndex?: number | null; // Optional: to highlight human player or adjust display
 }
 
-const PokerTable: React.FC<PokerTableProps> = ({ gameState }) => {
+const PokerTable: React.FC<PokerTableProps> = ({ gameState, humanPlayerIndex }) => {
     if (!gameState) {
         return <div className="poker-table loading">Waiting for game state...</div>;
     }
@@ -14,8 +15,15 @@ const PokerTable: React.FC<PokerTableProps> = ({ gameState }) => {
     // Helper to transform GameStateResponse player data to PlayerState for PlayerDisplay
     const getPlayerState = (playerIndex: number): PlayerState => {
         const isActor = gameState.actor_index === playerIndex;
-        // Determine player name - this is a placeholder, ideally backend provides names
-        const playerName = `Player ${playerIndex}`;
+        // Determine player name
+        let playerName = `Player ${playerIndex}`;
+        if (playerIndex === humanPlayerIndex) {
+            playerName = `Human (Player ${playerIndex})`;
+        } else {
+            // Assuming player_one_ai_type and player_two_ai_type might be available in future gameState
+            // For now, just use a generic AI name or rely on App.tsx to pass more specific names if needed.
+            playerName = `AI Opponent (Player ${playerIndex})`; 
+        }
         
         let holeCards: string[] | undefined = undefined;
         if (gameState.player_hole_cards && gameState.player_hole_cards[playerIndex]) {

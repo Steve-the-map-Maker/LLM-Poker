@@ -6,6 +6,8 @@ interface GameControlsProps {
     gameId: string | null;
     isGameOver: boolean;
     isLoading: boolean;
+    isHumanPlayer?: boolean; // Added: Optional prop to indicate if a human is playing
+    isHumanTurn?: boolean;   // Added: Optional prop to indicate if it's the human's turn
 }
 
 const GameControls: React.FC<GameControlsProps> = ({ 
@@ -13,15 +15,18 @@ const GameControls: React.FC<GameControlsProps> = ({
     onResetGame, 
     gameId, 
     isGameOver, 
-    isLoading 
+    isLoading,
+    isHumanPlayer, // Destructure new prop
+    isHumanTurn    // Destructure new prop
 }) => {
     return (
         <div className="game-controls">
             <button 
                 onClick={onNextAiTurn} 
-                disabled={!gameId || isGameOver || isLoading}
+                // Disable if no game, game over, loading, or if it's a human player's turn
+                disabled={!gameId || isGameOver || isLoading || (isHumanPlayer && isHumanTurn)}
             >
-                {isLoading ? 'Processing...' : 'Next AI Turn'}
+                {isLoading ? 'Processing...' : (isHumanPlayer && isHumanTurn) ? 'Waiting for Your Action' : 'Next AI Turn'}
             </button>
             <button 
                 onClick={onResetGame} 

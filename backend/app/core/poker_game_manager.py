@@ -53,3 +53,11 @@ class PokerGameManager:
     def get_game_state(self, game_id: str) -> Optional[State]:
         """Retrieves the current state of a game by its ID."""
         return self.active_games.get(game_id)
+
+    def update_game_state(self, game_id: str, new_state: State) -> None:
+        """Updates the state of an active game."""
+        if game_id in self.active_games:
+            self.active_games[game_id] = new_state
+        else:
+            # Or handle as an error, e.g., raise ValueError("Game ID not found")
+            print(f"Warning: Game ID {game_id} not found in active_games for update.")

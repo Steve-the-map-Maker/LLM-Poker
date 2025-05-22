@@ -49,37 +49,51 @@ async def get_game_state(
 @router.post("/{game_id}/action", response_model=GameStateResponse)
 async def player_action(
     game_id: str, 
-    action_request: PlayerActionRequest,
+    action_request: PlayerActionRequest, # PlayerActionRequest from poker_schemas
     game_service: GameService = Depends(get_game_service)
 ):
     """
-    Processes a human player's action. 
+    Processes a player's action. If the actor is human, this endpoint is used.
     Invokes `game_service.process_human_action`.
-    Requires `player_id` in `PlayerActionRequest` to identify the human player's seat index.
     """
-    if action_request.player_id is None:
-        raise HTTPException(status_code=400, detail="Player ID (index) is required for human actions.")
+    current_pk_state = game_service.game_manager.get_game_state(game_id)
+    if not current_pk_state:
+        raise HTTPException(status_code=404, detail="Game not found")
+
+    if not current_pk_state.status:
+        raise HTTPException(status_code=400, detail="Game is over. No actions can be taken.")
+
+    actor_index = current_pk_state.actor_index
+    if actor_index is None:
+        raise HTTPException(status_code=400, detail="No player is currently set to act.")
+
+    # Check if the current actor is human based on stored identities
+    player_identities = game_service.game_player_identities.get(game_id)
+    if not player_identities or player_identities.get(actor_index) != "human":
+        # This endpoint should only be called for human actions.
+        # If it's an AI's turn, advance_ai_turn should be used.
+        raise HTTPException(
+            status_code=403,
+            detail=f"Player {actor_index} is not a human player or identities not found. Use advance_ai_turn for AI."
+        )
     
-    try:
-        human_player_index = int(action_request.player_id) # Assuming player_id is the index
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid Player ID format. Must be an integer index.")
-
-    if not (0 <= human_player_index < 2): # Assuming 2 players for now
-         # TODO: Get player_count from game_state if possible, or make it more dynamic
-        raise HTTPException(status_code=400, detail=f"Player index {human_player_index} is out of bounds.")
+    human_player_index = actor_index # Confirmed: current actor is human
 
     try:
+        # Pass the confirmed human_player_index to the service method
         updated_game_state = game_service.process_human_action(game_id, action_request, human_player_index)
+        
         if updated_game_state.error_message:
             # The service layer might return a state with an error message for invalid actions
+            # Re-raise as HTTPException to ensure proper client response
             raise HTTPException(status_code=400, detail=updated_game_state.error_message)
         return updated_game_state
     except ValueError as e:
-        # Catch errors from service layer if not already in response model
+        # Catch specific ValueErrors from service layer if not already in response model
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        # Log the exception e
+        # Log the exception e for debugging
+        print(f"Unhandled exception in /action for game {game_id}, player {human_player_index}: {e}")
         raise HTTPException(status_code=500, detail=f"Error processing action: {str(e)}")
 
 @router.post("/{game_id}/advance_ai_turn", response_model=GameStateResponse)

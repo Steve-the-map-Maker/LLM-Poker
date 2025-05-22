@@ -2,34 +2,33 @@ import React, { useState, useEffect } from 'react';
 import LLMSelector from './components/LLMSelector';
 import PokerTable from './components/PokerTable';
 import GameControls from './components/GameControls';
-import { startGameApi, advanceAiTurnApi, getGameStateApi } from './services/gameApi';
-import { GameStateResponse } from './types/gameTypes';
-import './App.css'; // Assuming you will create a basic App.css for styling
+import ActionControls from './components/ActionControls'; // Import ActionControls
+import { startGameApi, advanceAiTurnApi, playerActionApi } from './services/gameApi'; 
+import { GameStateResponse, PlayerActionRequest } from './types/gameTypes'; // Import PlayerActionRequest
+import './App.css';
 
 const App: React.FC = () => {
     const [gameId, setGameId] = useState<string | null>(null);
     const [gameState, setGameState] = useState<GameStateResponse | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+    const [humanPlayerIndex, setHumanPlayerIndex] = useState<number | null>(null);
 
-    // Optional: If you want to try and load a game state if a gameId is in localStorage
-    // useEffect(() => {
-    //     const storedGameId = localStorage.getItem('pokerGameId');
-    //     if (storedGameId) {
-    //         setGameId(storedGameId);
-    //         // Potentially fetch game state here if you want to resume
-    //         // handleGetGameState(storedGameId);
-    //     }
-    // }, []);
-
-    const handleStartGame = async (ai1: string, ai2: string) => {
+    const handleStartGame = async (player1Type: string, player2Type: string) => {
         setIsLoading(true);
         setError(null);
         try {
-            const data = await startGameApi(ai1, ai2);
+            let determinedHumanPlayerIndex: number | null = null;
+            if (player1Type.toLowerCase() === 'human') {
+                determinedHumanPlayerIndex = 0;
+            } else if (player2Type.toLowerCase() === 'human') {
+                determinedHumanPlayerIndex = 1;
+            }
+            setHumanPlayerIndex(determinedHumanPlayerIndex);
+
+            const data = await startGameApi(player1Type, player2Type);
             setGameState(data);
             setGameId(data.game_id);
-            // localStorage.setItem('pokerGameId', data.game_id); // Optional: persist gameId
         } catch (err: any) {
             setError(err.message || "Failed to start game.");
             console.error(err);
@@ -37,8 +36,34 @@ const App: React.FC = () => {
         setIsLoading(false);
     };
 
+    const handlePlayerAction = async (actionType: string, amount?: number) => {
+        if (!gameId || humanPlayerIndex === null || !gameState || gameState.actor_index !== humanPlayerIndex) {
+            setError("Cannot perform action: Not human's turn or game not active.");
+            return;
+        }
+        setIsLoading(true);
+        setError(null);
+        try {
+            const actionRequest: PlayerActionRequest = { action_type: actionType };
+            if (amount !== undefined) {
+                actionRequest.amount = amount;
+            }
+            const data = await playerActionApi(gameId, actionRequest); // Use the actual API call
+            setGameState(data); // Update game state with the response
+        } catch (err: any) {
+            setError(err.message || "Failed to perform player action.");
+            console.error(err);
+        } finally {
+            setIsLoading(false); // Ensure loading is set to false after action attempt
+        }
+    };
+
     const handleNextAiTurn = async () => {
-        if (!gameId || (gameState && !gameState.status)) return; // Game over or no gameId
+        if (!gameId || (gameState && !gameState.status)) return;
+        if (gameState && gameState.actor_index === humanPlayerIndex && humanPlayerIndex !== null) {
+            setError("It's the human player's turn. AI turn cannot be advanced.");
+            return;
+        }
         setIsLoading(true);
         setError(null);
         try {
@@ -51,26 +76,15 @@ const App: React.FC = () => {
         setIsLoading(false);
     };
 
-    // Example function if you wanted to manually refresh/get state
-    // const handleGetGameState = async (currentId: string) => {
-    //     setIsLoading(true);
-    //     setError(null);
-    //     try {
-    //         const data = await getGameStateApi(currentId);
-    //         setGameState(data);
-    //     } catch (err: any) {
-    //         setError(err.message || "Failed to fetch game state.");
-    //         console.error(err);
-    //     }
-    //     setIsLoading(false);
-    // };
-
     const handleResetGame = () => {
         setGameId(null);
         setGameState(null);
         setError(null);
-        // localStorage.removeItem('pokerGameId'); // Optional: clear persisted gameId
+        setHumanPlayerIndex(null);
     };
+    
+    const isHumanTurn = gameState?.status === true && gameState.actor_index === humanPlayerIndex && humanPlayerIndex !== null;
+    const humanPlayerStack = humanPlayerIndex !== null && gameState?.stacks ? gameState.stacks[humanPlayerIndex] : 0;
 
     return (
         <div className="App">
@@ -79,22 +93,35 @@ const App: React.FC = () => {
             </header>
             <main>
                 {error && <p className="error-message">Error: {error}</p>}
-                {isLoading && <p className="loading-message">Loading...</p>}
 
                 {!gameId ? (
                     <LLMSelector onStartGame={handleStartGame} isLoading={isLoading} />
                 ) : (
                     <>
-                        <PokerTable gameState={gameState} />
+                        <PokerTable gameState={gameState} humanPlayerIndex={humanPlayerIndex} />
+                        {isHumanTurn && gameState && (
+                            <ActionControls
+                                gameId={gameId}
+                                humanPlayerIndex={humanPlayerIndex}
+                                isHumanTurn={isHumanTurn}
+                                availableActions={gameState.available_actions || []}
+                                checkingOrCallingAmount={gameState.checking_or_calling_amount || 0}
+                                minRaiseToAmount={gameState.min_raise_to_amount || 0}
+                                maxRaiseToAmount={gameState.max_raise_to_amount || humanPlayerStack}
+                                playerStack={humanPlayerStack}
+                                onPlayerAction={handlePlayerAction}
+                                isLoading={isLoading}
+                            />
+                        )}
                         <GameControls 
                             onNextAiTurn={handleNextAiTurn} 
                             onResetGame={handleResetGame} 
                             gameId={gameId} 
                             isGameOver={gameState ? !gameState.status : false} 
-                            isLoading={isLoading} 
+                            isLoading={isLoading}
+                            isHumanPlayer={humanPlayerIndex !== null}
+                            isHumanTurn={isHumanTurn}
                         />
-                        {/* Button to manually refresh state - useful for debugging */}
-                        {/* <button onClick={() => gameId && handleGetGameState(gameId)} disabled={isLoading}>Refresh Game State</button> */}
                     </>
                 )}
             </main>
