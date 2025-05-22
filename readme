@@ -1,0 +1,833 @@
+# LLM Poker Arena
+
+**Note to AI Agent (GitHub Copilot):** This README is designed to guide you in developing the LLM Poker Arena. Please follow the phases and tasks sequentially. Pay close attention to specified file names, function/class signatures, data transformations, and PokerKit library interactions. Implement robust error handling and logging as you develop each component.
+
+**Project Overview:** A web application where users can observe Texas Hold em poker games played exclusively between two different Large Language Model (LLM) AIs. The primary focus is on the AI vs. AI interaction, with a secondary goal of allowing a human to play against an LLM. This project will heavily leverage the **PokerKit** library from the University of Toronto Computer Poker Research Group for its core poker logic, ensuring robust and accurate game mechanics.
+
+**Core Idea:** To create an arena where different LLMs can be pitted against each other in games of No-Limit Texas Hold em, allowing for observation, analysis, and comparison of their poker-playing strategies.
+
+## Key Features
+
+* **LLM vs. LLM Gameplay:** The primary mode where two selected LLMs play against each other.
+* **Human vs. LLM Gameplay:** A secondary mode allowing a human user to play against a selected LLM.
+* **PokerKit Powered Core:** All fundamental poker mechanics (deck management, card dealing, betting rounds, pot calculation, hand evaluation, winner determination) will be handled by the PokerKit library.
+* **Multiple LLM Support:** Design for easy integration of various LLM AI opponents (e.g., OpenAI s GPT models, Google s Gemini models).
+* **Web-Based Interface:** A React frontend for game visualization, LLM selection, and potentially human player interaction.
+* **FastAPI Backend:** A Python backend to manage game flow, interface with PokerKit, and communicate with LLM APIs.
+
+**Note on Persistence:** For V1, game state (managed via PokerKit `State` objects) will be in-memory on the backend. Database persistence for game history or resuming games is a potential V2 feature.
+
+## Development Approach
+
+* **Test-Driven Development:** We'll follow a test-driven approach by writing tests before implementing features.
+* **Dummy AI First:** We'll initially implement a dummy AI player rather than integrating real LLM APIs. This will let us focus on the core poker logic and UI components before adding LLM integration.
+* **Human First:** In human vs. AI games, the human player will always act first.
+* **Simple UI:** We'll start with a simple UI using basic letters and numbers for cards and game elements. Visual polish can be added later.
+* **Local Development:** Initial focus will be on local development only. We'll address deployment considerations after core functionality is working.
+
+## Technology Stack
+
+* **Backend:**
+    * Python 3.11+ (required by PokerKit)
+    * FastAPI (for API development)
+    * Uvicorn (as an ASGI server)
+    * **PokerKit** (for all poker logic and game state management)
+    * Pydantic (for data validation and API models)
+    * `python-dotenv` (for managing environment variables)
+    * LLM-specific SDKs (to be added later)
+* **Frontend:**
+    * JavaScript/TypeScript
+    * React
+    * `axios` for API calls
+* **AI:**
+    * Initial implementation: Dummy AI with basic logic
+    * Future implementation: Various LLM APIs (OpenAI, Google Gemini, etc.)
+
+## Project Structure
+
+## Setup
+
+### Prerequisites
+
+* Python 3.11 or higher. **AI Agent:** Verify your Python version.
+* Node.js and npm (or yarn). **AI Agent:** Verify Node.js and npm/yarn are installed.
+* API keys for the LLMs you intend to use (e.g., OpenAI, Google AI Studio).
+
+### Installation
+
+1.  **Clone the Repository:**
+    ```bash
+    git clone <your_repository_url>
+    cd poker-llm-arena
+    ```
+
+2.  **Backend Setup:**
+    * Navigate to the `backend` directory:
+        ```bash
+        cd backend
+        ```
+    * Create and activate a Python virtual environment:
+        ```bash
+        python -m venv venv
+        source venv/bin/activate  # On Windows: venv\Scripts\activate
+        ```
+    * Install dependencies (ensure `pokerkit` is in `requirements.txt` and its version is compatible with Python 3.11+):
+        ```bash
+        pip install -r requirements.txt
+        ```
+        **AI Agent:** Ensure `pokerkit` is listed in `requirements.txt`. If not, add it.
+
+3.  **Frontend Setup:**
+    * Navigate to the `frontend` directory:
+        ```bash
+        cd ../frontend # Assuming you were in backend/
+        ```
+    * Install dependencies:
+        ```bash
+        npm install  # or yarn install
+        ```
+
+4.  **Environment Variables:**
+    * Navigate back to the project root:
+        ```bash
+        cd .. # Assuming you were in frontend/
+        ```
+    * Copy the example environment file:
+        ```bash
+        cp .env.example .env
+        ```
+    * Edit the `.env` file with your actual API keys:
+        ```env
+        OPENAI_API_KEY="your_openai_api_key"
+        GOOGLE_API_KEY="your_google_api_key"
+        # Add other LLM API keys as needed
+        ```
+        **AI Agent:** `config.py` will load these. Ensure it handles missing keys gracefully, perhaps logging a warning.
+
+## How to Run
+
+1.  **Start the Backend Server:**
+    * Ensure your Python virtual environment is activated.
+    * From the `backend` directory:
+        ```bash
+        uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+        ```
+    * The backend API will be available at `http://localhost:8000`.
+    * API documentation (Swagger UI) will be at `http://localhost:8000/docs`. **AI Agent:** Verify this path in your FastAPI setup in `main.py`.
+
+2.  **Start the Frontend Development Server:**
+    * Open a new terminal.
+    * Navigate to the `frontend` directory:
+        ```bash
+        cd frontend
+        ```
+    * Start the React development server:
+        ```bash
+        npm start  # or yarn start
+        ```
+    * The frontend will typically open at `http://localhost:3000` in your browser.
+
+## API Endpoints
+
+**Location:** `backend/app/api/v1/endpoints/game.py`
+**Request/Response Models:** Defined in `backend/app/api/v1/schemas.py`
+
+* `POST /api/v1/game/start`
+    * **Request Body Model:** `schemas.StartGameRequest`
+        * Example: `{ "player_one_ai_type": "gpt", "player_two_ai_type": "gemini", "human_player_index": null }`
+    * **Response Body Model:** `schemas.GameStateResponse` (HTTP 200 OK)
+    * **Action:** Initializes a new PokerKit game. Invokes `game_service.create_new_game_instance`.
+* `GET /api/v1/game/{game_id}/state`
+    * **Path Parameter:** `game_id: str`
+    * **Response Body Model:** `schemas.GameStateResponse` (HTTP 200 OK) or error if game not found (HTTP 404 Not Found).
+    * **Action:** Retrieves the current state of the specified game. Invokes `game_service.get_game_state`.
+* `POST /api/v1/game/{game_id}/action` (Primarily for Human vs. LLM mode)
+    * **Path Parameter:** `game_id: str`
+    * **Request Body Model:** `schemas.PlayerActionRequest`
+        * Example: `{ "player_id": "human_player_id_from_gamestate", "action_type": "raise", "amount": 500 }`
+    * **Response Body Model:** `schemas.GameStateResponse` (HTTP 200 OK) or error (e.g., HTTP 400 Bad Request for invalid action, HTTP 404 Not Found for game).
+    * **Action:** Processes a human player's action. Invokes `game_service.process_human_action`.
+* `POST /api/v1/game/{game_id}/advance_ai_turn` (For LLM vs. LLM mode, or to trigger AI after human)
+    * **Path Parameter:** `game_id: str`
+    * **Response Body Model:** `schemas.GameStateResponse` (HTTP 200 OK) or error (HTTP 404 Not Found for game).
+    * **Action:** If it's an AI's turn, fetches the AI's move and applies it. Invokes `game_service.run_ai_vs_ai_game_turn`.
+
+## Development Roadmap
+
+**AI Agent:** Follow these phases meticulously. Refer to the "Key PokerKit Concepts to Leverage" section at the end when interacting with the PokerKit library.
+
+---
+
+### **Phase 0: Project Setup & PokerKit Deep Dive**
+
+* **Goal:** Establish the project structure and gain a thorough understanding of PokerKit.
+* **Tasks:**
+    1.  **Create Project Directory Structure:**
+        * **Action:** Create all directories and empty `__init__.py` files as outlined in the "Project Structure" section.
+    2.  **Initialize `git` Repository:**
+        * **Action:** Run `git init` in the `poker-llm-arena` root directory. Create an initial commit.
+    3.  **Backend Virtual Environment & Dependencies:**
+        * **Action:** In `backend/`, create `requirements.txt`. Add `fastapi`, `uvicorn[standard]`, `pydantic`, `python-dotenv`, and **`pokerkit`**.
+        * **Action:** Follow "Backend Setup" instructions to install dependencies.
+    4.  **Frontend Basic Setup:**
+        * **Action:** In `frontend/`, initialize a new React TypeScript project (e.g., `npx create-react-app frontend --template typescript` if starting fresh, or ensure existing setup is TypeScript-based). Install `axios`.
+    5.  **PokerKit Study & Experimentation:**
+        * **Action:** Create a temporary Python script (e.g., `backend/sandbox/pk_test.py`).
+        * **Action:** Import `pokerkit.games` and `pokerkit.state`.
+        * **Experiment 1: State Creation:** Instantiate `pokerkit.games.NoLimitTexasHoldem.create_state(([20000, 20000], [100, 200]), automations=pokerkit.Automation.ALL_AUTOMATED_BY_POKERKIT)`. Print the state.
+        * **Experiment 2: Manual Operations (if automations are selective):**
+            * Practice `state.deal_hole()`, `state.deal_board()`.
+            * Simulate player actions: `state.check_or_call()`, `state.complete_bet_or_raise_to(amount)`, `state.fold()`.
+            * **Observe:** After each action, print and inspect:
+                * `state.actor_index` (Whose turn is it?)
+                * `state.status` (Is the hand/game ongoing?)
+                * `state.stacks` (How have stacks changed?)
+                * `state.bets` (Current bets for the round?)
+                * `state.pot_amounts` (Total pot, side pots?)
+                * `state.hole_cards` (Visible hole cards for players)
+                * `state.board_cards` (Community cards)
+                * `state.operations` (Log of actions)
+                * `state.street_index` (Preflop, Flop, Turn, River)
+        * **Understand Automations:** Review PokerKit's `Automation` enum. For this project, start with high automation, but understand which flags control specific behaviors (e.g., dealing, blind posting).
+        * **Goal:** Be comfortable with how PokerKit's `State` object reflects game progression.
+
+---
+
+### **Phase 1: Backend Core - PokerKit Integration & Game Management**
+
+* **Goal:** Create a robust backend foundation using PokerKit to manage the poker game.
+* **Tasks:**
+    1.  **`poker_game_manager.py` Implementation (`backend/app/core/poker_game_manager.py`):**
+        * **Action:** Create class `PokerGameManager`.
+        * **Method 1: `start_new_heads_up_game`**
+            * Signature: `def start_new_heads_up_game(self, initial_stacks: list[int] = [20000, 20000], blinds: list[int] = [100, 200]) -> pokerkit.State:`
+            * Implementation:
+                * Use `pokerkit.games.NoLimitTexasHoldem.create_state((initial_stacks, blinds), automations=pokerkit.Automation.ALL_AUTOMATED_BY_POKERKIT)`.
+                * **Note:** PokerKit s `player_count` is implicitly determined by the length of `initial_stacks`. Ensure this is 2 for heads-up.
+                * Return the created `pokerkit.State` object.
+        * **Method 2: `apply_action`**
+            * Signature: `def apply_action(self, current_state: pokerkit.State, player_index: int, action_type: str, amount: Optional[int] = None) -> pokerkit.State:`
+            * Validation & Action:
+                * Verify `current_state.actor_index == player_index`. If not, raise an exception (e.g., `ValueError("Not player's turn")`).
+                * If `action_type == "fold"`:
+                    * Check `current_state.can_fold()`. If true, call `current_state.fold()`.
+                * Else if `action_type == "call"` or `action_type == "check"`:
+                    * Check `current_state.can_check_or_call()`. If true, call `current_state.check_or_call()`.
+                * Else if `action_type == "raise"`:
+                    * Ensure `amount` is provided.
+                    * Check `current_state.can_complete_bet_or_raise_to(amount)`. If true, call `current_state.complete_bet_or_raise_to(amount)`.
+                * Else: Raise `ValueError(f"Invalid action_type: {action_type}")`.
+                * If an action is invalid (e.g., `can_fold()` is false), raise an appropriate `ValueError`.
+            * Return the modified `current_state`.
+    2.  **Pydantic Schemas (`backend/app/api/v1/schemas.py`):**
+        * **AI Agent:** Define these Pydantic models. Ensure all fields are typed correctly. Use `Optional` and default values where appropriate.
+        * `CardResponse(BaseModel): rank: str; suit: str`
+        * `PlayerAPIState(BaseModel): id: str; name: str; stack: int; hole_cards: List[Optional[CardResponse]]; # Null if cards not revealed to observer is_turn: bool; last_action: Optional[str] = None; # e.g., "fold", "call 200", "raise to 500"`
+        * `GameStateResponse(BaseModel): game_id: str; players: List[PlayerAPIState]; community_cards: List[CardResponse]; pot: int; current_bet_to_match: int; # Amount to call for current player betting_round_name: str; is_game_over: bool; current_actor_player_id: Optional[str]; # Player ID of the current actor dealer_button_player_id: str; # Player ID of the player with the dealer button last_action_description: Optional[str] = None # Overall last action in game`
+        * `StartGameRequest(BaseModel): player_one_ai_type: str; player_two_ai_type: str; human_player_index: Optional[int] = None # 0 for player one, 1 for player two`
+        * `PlayerActionRequest(BaseModel): player_id: Optional[str] = None; # For human player identification action_type: str # "fold", "call", "check", "raise" amount: Optional[int] = None # Total amount for a raise action`
+    3.  **`game_service.py` Implementation (`backend/app/services/game_service.py`):**
+        * Imports: `uuid`, `Dict`, `Optional`, `List`, `pokerkit`, `PokerGameManager` (from `app.core.poker_game_manager`), Schemas (from `app.api.v1.schemas`).
+        * In-memory stores (module level):
+            * `games: Dict[str, pokerkit.State] = {}`
+            * `game_player_identities: Dict[str, Dict[int, str]] = {}` # game_id -> {player_idx: player_name_or_type}
+            * `game_player_ids_map: Dict[str, Dict[str, int]] = {}` # game_id -> {player_id_str: player_idx}
+            * `poker_manager = PokerGameManager()`
+        * **Helper Function: `_generate_player_id(game_id: str, player_index: int) -> str`**:
+            * Returns a unique ID string, e.g., `f"{game_id}_player_{player_index}"`.
+        * **Helper Function: `_pokerkit_state_to_api_response(game_id: str, pk_state: pokerkit.State) -> GameStateResponse`**:
+            * **AI Agent:** This is a critical mapping function. Implement it carefully.
+            * `players_api_state: List[PlayerAPIState] = []`
+            * Loop `i` from `0` to `pk_state.player_count - 1`:
+                * `player_id = self._generate_player_id(game_id, i)` (or retrieve if stored)
+                * `player_name = self.game_player_identities[game_id].get(i, f"Player {i+1}")`
+                * `hole_cards_response: List[Optional[CardResponse]] = []`
+                    * Use `pk_state.get_censored_hole_cards(i)` which returns `tuple(Optional[Card], ...)`.
+                    * Iterate through these. If card is not None, convert `pokerkit.Card` (`card.rank.value`, `card.suit.value`) to `CardResponse`. If None, append `None`.
+                    * **Visibility rule:** For LLM vs LLM, if `not pk_state.status` (game is over), all cards might be revealed. Otherwise, only show player `i` their own cards if they are supposed to see them. For an observer, censored cards are correct. This logic might need refinement based on human player context. For now, `get_censored_hole_cards` is a safe default.
+                * `is_turn = (pk_state.actor_index == i and pk_state.status)`
+                * `player_api = PlayerAPIState(id=player_id, name=player_name, stack=pk_state.stacks[i], hole_cards=hole_cards_response, is_turn=is_turn, last_action=None) # last_action per player can be complex, TBD or use overall last action`
+                * Append to `players_api_state`.
+            * `community_cards_response = [CardResponse(rank=card.rank.value, suit=card.suit.value) for card in pk_state.board_cards]`
+            * `pot = pk_state.total_pot_amount`
+            * `current_bet_to_match = pk_state.checking_or_calling_amount if pk_state.status else 0`
+            * `street_map = {0: "Preflop", 1: "Flop", 2: "Turn", 3: "River", 4: "Showdown"}` (PokerKit streets: 0-Preflop, 1-Flop, 2-Turn, 3-River. Showdown isn t a street index itself but a state after street 3 betting is done.)
+            * `betting_round_name = street_map.get(pk_state.street_index, "Game Over")` If `not pk_state.status`, set to "Game Over" or "Showdown".
+            * `is_game_over = not pk_state.status`
+            * `current_actor_player_id = self._generate_player_id(game_id, pk_state.actor_index) if pk_state.status and pk_state.actor_index is not None else None`
+            * `dealer_button_player_index = pk_state.button_index` (PokerKit `State` usually has `button_index` after blinds are posted, reflecting the dealer position for that hand).
+            * `dealer_button_player_id = self._generate_player_id(game_id, dealer_button_player_index)`
+            * `last_action_description`: Get from `pk_state.operations[-1]` if `pk_state.operations` exists. Format it nicely. E.g. `f"{player_name} {operation_type} {amount}"`.
+            * Return `GameStateResponse(...)` with all mapped fields.
+        * **Method: `create_new_game_instance(self, request: StartGameRequest) -> GameStateResponse`**:
+            * `game_id = str(uuid.uuid4())`
+            * `pk_state = self.poker_manager.start_new_heads_up_game()` (use default stacks/blinds or make configurable via request)
+            * `self.games[game_id] = pk_state`
+            * `self.game_player_identities[game_id] = {}`
+            * `self.game_player_ids_map[game_id] = {}`
+            * Assign player names/types:
+                * `p1_name = "Human" if request.human_player_index == 0 else request.player_one_ai_type`
+                * `p2_name = "Human" if request.human_player_index == 1 else request.player_two_ai_type`
+                * `self.game_player_identities[game_id][0] = p1_name`
+                * `self.game_player_identities[game_id][1] = p2_name`
+                * `self.game_player_ids_map[game_id][self._generate_player_id(game_id, 0)] = 0`
+                * `self.game_player_ids_map[game_id][self._generate_player_id(game_id, 1)] = 1`
+            * Return `self._pokerkit_state_to_api_response(game_id, pk_state)`.
+        * **Method: `get_game_state(self, game_id: str) -> Optional[GameStateResponse]`**:
+            * `pk_state = self.games.get(game_id)`
+            * If `pk_state is None`, return `None` (FastAPI will handle 404 if endpoint returns None).
+            * Return `self._pokerkit_state_to_api_response(game_id, pk_state)`.
+        * **Method: `process_human_action(self, game_id: str, player_id: str, action_request: PlayerActionRequest) -> GameStateResponse`**:
+            * `pk_state = self.games.get(game_id)`
+            * If `pk_state is None`, raise `ValueError("Game not found")` (or handle to return HTTP 404).
+            * `player_index = self.game_player_ids_map[game_id].get(player_id)`
+            * If `player_index is None`, raise `ValueError("Player not found in game")`.
+            * If `pk_state.actor_index != player_index`, raise `ValueError("Not player's turn")`.
+            * Check if player is human based on `game_player_identities`. (Crucial for security/logic).
+            * `updated_pk_state = self.poker_manager.apply_action(pk_state, player_index, action_request.action_type, action_request.amount)`
+            * `self.games[game_id] = updated_pk_state`
+            * Return `self._pokerkit_state_to_api_response(game_id, updated_pk_state)`.
+            * **AI Agent:** Add try-except blocks for `PokerGameManager.apply_action` to catch invalid moves and translate them into appropriate HTTP errors (e.g., 400 Bad Request).
+        * **Method (Internal helper, could be part of `run_ai_vs_ai_game_turn` later): `_process_ai_action(self, game_id: str, ai_player_index: int, ai_action: PlayerActionRequest) -> pokerkit.State`**:
+            * `pk_state = self.games[game_id]`
+            * `updated_pk_state = self.poker_manager.apply_action(pk_state, ai_player_index, ai_action.action_type, ai_action.amount)`
+            * `self.games[game_id] = updated_pk_state`
+            * Return `updated_pk_state`.
+    4.  **Basic API Endpoints (`backend/app/api/v1/endpoints/game.py`):**
+        * Imports: `FastAPI`, `APIRouter`, `HTTPException`, `game_service` instance, Schemas.
+        * `router = APIRouter()`
+        * `game_svc = GameService()` (instantiate your service)
+        * `@router.post("/start", response_model=schemas.GameStateResponse)`:
+            * `async def start_game(request: schemas.StartGameRequest):`
+            * `return game_svc.create_new_game_instance(request)`
+        * `@router.get("/{game_id}/state", response_model=schemas.GameStateResponse)`:
+            * `async def get_state(game_id: str):`
+            * `state_response = game_svc.get_game_state(game_id)`
+            * `if state_response is None: raise HTTPException(status_code=404, detail="Game not found")`
+            * `return state_response`
+        * `@router.post("/{game_id}/action", response_model=schemas.GameStateResponse)`:
+            * `async def player_action(game_id: str, action_request: schemas.PlayerActionRequest):`
+            * `if action_request.player_id is None: raise HTTPException(status_code=400, detail="player_id is required for human actions")`
+            * `try:`
+                * `return game_svc.process_human_action(game_id, action_request.player_id, action_request)`
+            * `except ValueError as e: raise HTTPException(status_code=400, detail=str(e))`
+            * `except KeyError: raise HTTPException(status_code=404, detail="Game or player not found")`
+    5.  **Update `main.py` (`backend/main.py`):**
+        * `from app.api.v1.endpoints import game as game_api_v1`
+        * `app.include_router(game_api_v1.router, prefix="/api/v1/game", tags=["game"])`
+    6.  **Testing:**
+        * **Action:** Use Swagger UI (`/docs`):
+            * Call `POST /start`. Note the `game_id` and player IDs from the response.
+            * Call `GET /{game_id}/state`. Verify initial state.
+            * Call `POST /{game_id}/action` for the first player to act (e.g., Small Blind if no human intervention for blinds yet).
+                * Example action: `{ "player_id": "game_id_player_0", "action_type": "call" }` ( PokerKit will know the amount if auto-posting blinds)
+                * **AI Agent**: Note, `PlayerActionRequest` has `player_id`, `action_type`, and `amount`. For a simple 'call' or 'check', amount might not be needed from client if server can deduce. For 'raise', amount is the *total* amount to raise to.
+            * Call `GET /{game_id}/state` again. Verify the state changed as expected (next players turn, pot updated, etc.).
+            * Manually step through a few actions of a hand.
+
+---
+
+### **Phase 2: Basic AI Integration (Dummy AI & LLM vs. LLM Loop)**
+
+* **Goal:** Get two AIs (initially dummy AIs) to play a full hand against each other, managed by the backend.
+* **Tasks:**
+    1.  **`base_ai.py` (`backend/app/ai/base_ai.py`):**
+        * Imports: `ABC`, `abstractmethod` from `abc`, `pokerkit`, `PlayerActionRequest` from schemas.
+        * `class AIPlayer(ABC):`
+            * `@abstractmethod`
+            * `async def get_action(self, pk_state: pokerkit.State, player_index: int, game_id: str, player_name: str) -> PlayerActionRequest:`
+                * `pass`
+    2.  **`dummy_ai.py` (`backend/app/ai/dummy_ai.py`):**
+        * Imports: `AIPlayer`, `PlayerActionRequest`, `pokerkit`.
+        * `class DummyAI(AIPlayer):`
+            * `async def get_action(self, pk_state: pokerkit.State, player_index: int, game_id: str, player_name: str) -> PlayerActionRequest:`
+                * `# AI Agent: Implement simple deterministic logic:`
+                * `# Log the decision process for easier debugging.`
+                * `print(f"DummyAI ({player_name}, index {player_index}) is thinking...")`
+                * `# print(f"Hole cards: {pk_state.hole_cards[player_index]}") # Careful: direct access reveals cards`
+                * `# Censored hole cards for current player are not censored for themselves.`
+                * `# So `pk_state.get_censored_hole_cards(player_index)` will show current player their cards.`
+                * `# Or, if you need to be absolutely sure, `pk_state.hole_cards[player_index]` if this AI is trusted.`
+                * `if pk_state.can_check_or_call():`
+                    * `amount_to_call = pk_state.checking_or_calling_amount`
+                    * `if amount_to_call == 0:`
+                        * `print(f"DummyAI chooses: check")`
+                        * `return PlayerActionRequest(action_type="check")`
+                    * `else:`
+                        * `# Simple logic: always call if possible and not a check`
+                        * `print(f"DummyAI chooses: call {amount_to_call}")`
+                        * `return PlayerActionRequest(action_type="call", amount=amount_to_call) # PokerKit needs amount for call too for its internal logic, even if it's just the checking_or_calling_amount`
+                * `elif pk_state.can_fold():`
+                    * `print(f"DummyAI chooses: fold")`
+                    * `return PlayerActionRequest(action_type="fold")`
+                * `else:`
+                    * `# Should not happen in a well-formed game state if it's this player's turn`
+                    * `print(f"DummyAI Warning: No valid actions? Defaulting to fold.")`
+                    * `return PlayerActionRequest(action_type="fold")`
+    3.  **`game_service.py` Enhancements (`backend/app/services/game_service.py`):**
+        * Imports: `DummyAI` from `app.ai.dummy_ai` (and later `GPT_AI`, `Gemini_AI`).
+        * Add to `GameService` class:
+            * `ai_constructors: Dict[str, type[AIPlayer]]` (populated in `__init__`)
+            * `def __init__(self):`
+                * `self.poker_manager = PokerGameManager()`
+                * `self.games: Dict[str, pokerkit.State] = {}`
+                * `self.game_player_identities: Dict[str, Dict[int, str]] = {}`
+                * `self.game_player_ids_map: Dict[str, Dict[str, int]] = {}`
+                * `self.ai_constructors = {"dummy": DummyAI}` # Will add more LLMs here
+                * `# self.ai_instances: Dict[str, AIPlayer] = {} # Consider if AI instances need to maintain state across calls for the same game`
+                * `# For V1, instantiating AI on the fly per turn is simpler.`
+            * **Helper Method: `_get_ai_instance(self, ai_type: str) -> AIPlayer`**:
+                * `constructor = self.ai_constructors.get(ai_type.lower())`
+                * `if not constructor: raise ValueError(f"Unknown AI type: {ai_type}")`
+                * `return constructor()`
+            * **New Method: `async def run_ai_vs_ai_game_turn(self, game_id: str) -> GameStateResponse`**:
+                * `# 1. Retrieve PokerKit state`
+                * `pk_state = self.games.get(game_id)`
+                * `if pk_state is None: raise ValueError("Game not found") # Or handle for 404`
+                * `# 2. Check if game is over`
+                * `if not pk_state.status: return self._pokerkit_state_to_api_response(game_id, pk_state)`
+                * `# 3. Determine current player index`
+                * `current_player_index = pk_state.actor_index`
+                * `if current_player_index is None: # Should not happen if game not over`
+                    * `# Handle error or return current state`
+                    * `return self._pokerkit_state_to_api_response(game_id, pk_state)`
+                * `# 4. Get AI type for the current player`
+                * `player_name_or_type = self.game_player_identities[game_id].get(current_player_index)`
+                * `if player_name_or_type is None or player_name_or_type.lower() == "human":`
+                    * `# It's a human's turn or AI type not found; not an AI vs AI turn to run here.`
+                    * `# This function should only be called if it's known to be an AI's turn.`
+                    * `# Or, add logic to check if the current actor is indeed an AI as per StartGameRequest.`
+                    * `# For now, assume this function is called when it's an AI's turn.`
+                    * `print(f"Warning: run_ai_vs_ai_game_turn called for human player or unknown type: {player_name_or_type}")`
+                    * `return self._pokerkit_state_to_api_response(game_id, pk_state)`
+                * `# 5. Instantiate the AI`
+                * `try:`
+                    * `ai_player = self._get_ai_instance(player_name_or_type)`
+                * `except ValueError as e:`
+                    * `print(f"Error instantiating AI: {e}. AI will fold.")`
+                    * `# Default to fold if AI cannot be instantiated`
+                    * `ai_action_request = PlayerActionRequest(action_type="fold")`
+                * `else:`
+                    * `# 6. Get action from AI`
+                    * `print(f"Requesting action from {player_name_or_type} (Player {current_player_index}) for game {game_id}")`
+                    * `ai_action_request = await ai_player.get_action(pk_state, current_player_index, game_id, player_name_or_type)`
+                * `# 7. Apply AI's action using PokerGameManager`
+                * `try:`
+                    * `updated_pk_state = self.poker_manager.apply_action(pk_state, current_player_index, ai_action_request.action_type, ai_action_request.amount)`
+                * `except ValueError as e: # Catch invalid action from AI`
+                    * `print(f"AI {player_name_or_type} provided invalid action: {ai_action_request}. Error: {e}. AI will fold.")`
+                    * `# If AI's chosen action is invalid, override to fold`
+                    * `# Ensure that PokerKit state allows fold`
+                    * `if pk_state.can_fold():`
+                        * `updated_pk_state = self.poker_manager.apply_action(pk_state, current_player_index, "fold")`
+                    * `else: # Should be rare, but if fold isn't possible, game might be stuck or ended.`
+                        * `updated_pk_state = pk_state # No change`
+                * `# 8. Store updated PokerKit state`
+                * `self.games[game_id] = updated_pk_state`
+                * `# 9. Convert to API response and return`
+                * `return self._pokerkit_state_to_api_response(game_id, updated_pk_state)`
+        * Modify `create_new_game_instance` (if needed): Ensure AI types like "dummy" are stored in `game_player_identities` if they come from `StartGameRequest`.
+            * `p1_name = "Human" if request.human_player_index == 0 else request.player_one_ai_type`
+            * `p2_name = "Human" if request.human_player_index == 1 else request.player_two_ai_type`
+            * This part already handles storing AI types.
+    4.  **New API Endpoint (`backend/app/api/v1/endpoints/game.py`):**
+        * `@router.post("/{game_id}/advance_ai_turn", response_model=schemas.GameStateResponse)`:
+            * `async def advance_ai_turn(game_id: str):`
+            * `try:`
+                * `return await game_svc.run_ai_vs_ai_game_turn(game_id)`
+            * `except ValueError as e: raise HTTPException(status_code=400, detail=str(e))`
+            * `except KeyError: raise HTTPException(status_code=404, detail="Game not found")`
+    5.  **Testing:**
+        * **Action:**
+            * Use Swagger UI or a script.
+            * 1. Call `POST /api/v1/game/start` with:
+                ```json
+                {
+                  "player_one_ai_type": "dummy",
+                  "player_two_ai_type": "dummy",
+                  "human_player_index": null
+                }
+                ```
+            * 2. Get the `game_id` from the response.
+            * 3. Repeatedly call `POST /api/v1/game/{game_id}/advance_ai_turn`.
+            * 4. After each call, inspect the `GameStateResponse`.
+                * Verify players are taking turns.
+                * Verify actions are being applied (pot changes, stacks change, cards are dealt automatically by PokerKit).
+                * Check `last_action_description`.
+                * Continue until `is_game_over` is true.
+            * **AI Agent:** Add extensive logging in `DummyAI.get_action` and `GameService.run_ai_vs_ai_game_turn` to trace the game flow and AI decisions.
+
+---
+
+### **Phase 3: LLM AI Implementation**
+
+* **Goal:** Implement the actual LLM-based AI players.
+* **Tasks:**
+    1.  **`llm_prompts.py` (`backend/app/ai/llm_prompts.py`):**
+        * Imports: `pokerkit`, `List`.
+        * `def format_poker_state_for_llm(pk_state: pokerkit.State, player_index_for_ai: int, game_id: str, player_name: str, history: List[str]) -> str:`
+            * **AI Agent:** This function is crucial. Construct a detailed text prompt.
+            * `# --- Basic Game Information ---`
+            * `prompt_parts = [f"You are an expert Texas Hold'em poker player named '{player_name}'. This is game ID: {game_id}."]`
+            * `prompt_parts.append(f"You are Player {player_index_for_ai + 1} out of {pk_state.player_count} players.")`
+            * `# --- Your Hand ---`
+            * `your_hole_cards_obj = pk_state.hole_cards[player_index_for_ai]` # Direct access for the AI itself
+            * `your_cards_str = " and ".join([f"{card.rank.value}{card.suit.value}" for card in your_hole_cards_obj]) if your_hole_cards_obj else "No cards dealt yet / Folded"`
+            * `prompt_parts.append(f"Your hole cards: {your_cards_str}.")`
+            * `# --- Community Cards ---`
+            * `board_cards_obj = pk_state.board_cards`
+            * `board_str = " ".join([f"{card.rank.value}{card.suit.value}" for card in board_cards_obj]) if board_cards_obj else "None"`
+            * `street_map = {0: "Preflop (no community cards yet)", 1: "Flop", 2: "Turn", 3: "River"}`
+            * `betting_round_name = street_map.get(pk_state.street_index, "Unknown Round")`
+            * `prompt_parts.append(f"Betting Round: {betting_round_name}.")`
+            * `prompt_parts.append(f"Community cards (Board): {board_str}.")`
+            * `# --- Pot and Stacks ---`
+            * `prompt_parts.append(f"Total pot size: {pk_state.total_pot_amount} chips.")`
+            * `your_stack = pk_state.stacks[player_index_for_ai]`
+            * `prompt_parts.append(f"Your current stack: {your_stack} chips.")`
+            * `for i in range(pk_state.player_count):`
+                * `if i != player_index_for_ai:`
+                    * `opponent_name = f"Player {i + 1}" # In a 2-player game, this is simple. For more, use game_player_identities`
+                    * `prompt_parts.append(f"Opponent ({opponent_name}) stack: {pk_state.stacks[i]} chips.")`
+            * `# --- Blinds and Button ---`
+            * `# PokerKit state has `button_index`. Blinds are usually button_index + 1 (SB) and button_index + 2 (BB), wrapping around.`
+            * `# For a 2-player game: button_index is SB, other is BB.`
+            * `prompt_parts.append(f"Player {pk_state.button_index + 1} is the dealer button.")`
+            * `# Small blind amount: pk_state.blinds_or_straddles[0] (assuming standard blind structure)`
+            * `# Big blind amount: pk_state.blinds_or_straddles[1]`
+            * `prompt_parts.append(f"Small blind: {pk_state.blinds_or_straddles[0]}, Big blind: {pk_state.blinds_or_straddles[1]}.")`
+            * `# --- Action History (Simplified from pk_state.operations) ---`
+            * `prompt_parts.append("\n--- Action History This Hand ---")`
+            * `if not pk_state.operations:`
+                * `prompt_parts.append("No actions yet in this hand.")`
+            * `else:`
+                * `for op in pk_state.operations:`
+                    * `# Format pokerkit.Operation objects into readable strings.`
+                    * `# Example: "Player 1 posts small blind 100", "Player 2 posts big blind 200", "Player 1 calls 100", "Player 2 checks"`
+                    * `# This requires mapping operation types and player indices to names.`
+                    * `# Placeholder for now - needs proper formatting using game_player_identities and op details`
+                    * `op_player_name = f"Player {op.player_index + 1}" # Needs actual name from GameService context`
+                    * `op_detail = ""`
+                    * `if isinstance(op, pokerkit.AntePostingOperation): op_detail = f"posts ante {op.amount}"`
+                    * `elif isinstance(op, pokerkit.BlindOrStraddlePostingOperation): op_detail = f"posts {op.type_name.lower()} {op.amount}"`
+                    * `elif isinstance(op, pokerkit.FoldingOperation): op_detail = "folds"`
+                    * `elif isinstance(op, pokerkit.CheckingOrCallingOperation): op_detail = f"calls {op.amount}" if op.amount > 0 else "checks"`
+                    * `elif isinstance(op, pokerkit.CompletionBettingOrRaisingToOperation): op_detail = f"raises to {op.amount}"`
+                    * `# Add more for other operation types if needed`
+                    * `if op_detail: prompt_parts.append(f"{op_player_name} {op_detail}.")`
+            * `# --- Current Situation & Valid Actions ---`
+            * `prompt_parts.append("\n--- Your Turn ---")`
+            * `amount_to_call = pk_state.checking_or_calling_amount`
+            * `prompt_parts.append(f"Current bet to you: {amount_to_call} chips.")`
+            * `prompt_parts.append("Valid actions for you:")`
+            * `actions_list = []`
+            * `if pk_state.can_fold(): actions_list.append("FOLD")`
+            * `if pk_state.can_check_or_call():`
+                * `if amount_to_call == 0: actions_list.append("CHECK")`
+                * `else: actions_list.append(f"CALL") # LLM should know to call 'amount_to_call'`
+            * `min_raise = pk_state.min_completion_betting_or_raising_to_amount`
+            * `max_raise = pk_state.max_completion_betting_or_raising_to_amount` # This is your entire stack usually
+            * `if pk_state.can_complete_bet_or_raise_to() and min_raise is not None and max_raise is not None and min_raise <= max_raise:`
+                * `actions_list.append(f"RAISE_TO <total_amount> (min: {min_raise}, max: {max_raise})")`
+            * `prompt_parts.append(", ".join(actions_list) + ".")`
+            * `# --- Output Instruction ---`
+            * `prompt_parts.append("\n--- Your Decision ---")`
+            * `prompt_parts.append("Respond with your chosen action in ONE LINE, using ONE of the following formats:")`
+            * `prompt_parts.append("- FOLD")`
+            * `prompt_parts.append("- CHECK")`
+            * `prompt_parts.append("- CALL")`
+            * `prompt_parts.append("- RAISE_TO X (where X is the total amount you are raising to, e.g., RAISE_TO 500)")`
+            * `prompt_parts.append("Example: RAISE_TO 1000")`
+            * `prompt_parts.append("Only provide the action. No other text or explanation.")`
+            * `return "\n".join(prompt_parts)`
+    2.  **`gpt_ai.py` (`backend/app/ai/gpt_ai.py`) & `gemini_ai.py` (`backend/app/ai/gemini_ai.py`):**
+        * **AI Agent:** Implement these two files. The structure will be similar.
+        * Imports: `AIPlayer`, `PlayerActionRequest`, `pokerkit`, `format_poker_state_for_llm` (from `.llm_prompts`).
+        * LLM SDKs: `import openai` and `from google.generativeai import GenerativeModel` (or equivalent).
+        * Environment variable loading: `from app.config import settings` (create `backend/app/config.py` if it doesn't exist to load API keys from `.env`).
+            * **`config.py`:**
+                ```python
+                from pydantic_settings import BaseSettings
+                class Settings(BaseSettings):
+                    OPENAI_API_KEY: Optional[str] = None
+                    GOOGLE_API_KEY: Optional[str] = None
+                    class Config:
+                        env_file = ".env"
+                settings = Settings()
+                ```
+        * `class GPT_AI(AIPlayer):` (and similarly `GeminiAI`)
+            * `def __init__(self):`
+                * `self.api_key = settings.OPENAI_API_KEY` (or `settings.GOOGLE_API_KEY`)
+                * `if not self.api_key: raise ValueError("API key for [OpenAI/Google] not found.")`
+                * `# Initialize LLM client (e.g., self.client = openai.AsyncOpenAI(api_key=self.api_key))`
+            * `async def get_action(self, pk_state: pokerkit.State, player_index: int, game_id: str, player_name: str) -> PlayerActionRequest:`
+                * `# 1. Format state into prompt`
+                * `# Note: history for the prompt might be just pk_state.operations, or a separately maintained list of action strings.`
+                * `# For now, format_poker_state_for_llm handles operations internally.`
+                * `prompt = format_poker_state_for_llm(pk_state, player_index, game_id, player_name, [])`
+                * `print(f"\n--- Prompt for {player_name} (GPT) ---")`
+                * `print(prompt)`
+                * `print("-----------------------------------\n")`
+                * `# 2. Make API call to LLM`
+                * `try:`
+                    * `# Example for OpenAI (adjust for Gemini):`
+                    * `# response = await self.client.chat.completions.create(`
+                    * `# model="gpt-3.5-turbo", # or "gpt-4"`
+                    * `# messages=[{"role": "user", "content": prompt}],`
+                    * `# max_tokens=50, temperature=0.5`
+                    * `# )`
+                    * `# llm_response_text = response.choices[0].message.content.strip()`
+                    * `# Placeholder for actual API call`
+                    * `llm_response_text = "CALL" # Replace with actual API call and response handling`
+                    * `print(f"GPT Raw Response for {player_name}: {llm_response_text}")`
+                * `except Exception as e:`
+                    * `print(f"Error calling LLM API for {player_name}: {e}")`
+                    * `return PlayerActionRequest(action_type="fold") # Default to fold on API error`
+                * `# 3. Parse LLM's text response into PlayerActionRequest`
+                * `parts = llm_response_text.upper().split()`
+                * `action_type_str = parts[0]`
+                * `if action_type_str == "FOLD": return PlayerActionRequest(action_type="fold")`
+                * `elif action_type_str == "CHECK": return PlayerActionRequest(action_type="check")`
+                * `elif action_type_str == "CALL":`
+                    * `# Amount for call is determined by game state, but providing it can be good practice if the schema requires.`
+                    * `# For PlayerActionRequest, amount is Optional. PokerGameManager.apply_action will use pk_state.checking_or_calling_amount if type is call/check and amount is None.`
+                    * `# However, for simplicity in LLM parsing, it's fine if LLM just says CALL.`
+                    * `return PlayerActionRequest(action_type="call")`
+                * `elif action_type_str == "RAISE_TO" and len(parts) > 1:`
+                    * `try:`
+                        * `amount = int(parts[1])`
+                        * `return PlayerActionRequest(action_type="raise", amount=amount)`
+                    * `except ValueError:`
+                        * `print(f"LLM {player_name} response parsing error (invalid raise amount): {llm_response_text}")`
+                        * `return PlayerActionRequest(action_type="fold") # Default action`
+                * `else:`
+                    * `print(f"LLM {player_name} response parsing error (unknown action): {llm_response_text}")`
+                    * `return PlayerActionRequest(action_type="fold") # Default action`
+    3.  **Update `game_service.py` (`backend/app/services/game_service.py`):**
+        * In `GameService.__init__`:
+            * `from app.ai.gpt_ai import GPT_AI`
+            * `from app.ai.gemini_ai import GeminiAI`
+            * `self.ai_constructors = {"dummy": DummyAI, "gpt": GPT_AI, "gemini": GeminiAI}`
+            * (Ensure API keys are loaded via `config.settings` before AIs are instantiated if they load keys in their `__init__`).
+    4.  **Testing:**
+        * **AI Agent:** This is a critical testing phase.
+        * **Test 1: One LLM vs. DummyAI:**
+            * Start game with `player_one_ai_type="gpt"` (or "gemini"), `player_two_ai_type="dummy"`.
+            * Repeatedly call `/advance_ai_turn`.
+            * **Monitor:**
+                * Backend logs: Prompts sent to the LLM. Raw responses from the LLM. Parsed actions.
+                * Game progression: Does the LLM make vaguely sensible moves? Are actions applied correctly?
+        * **Test 2: LLM vs. LLM:**
+            * Start game with `player_one_ai_type="gpt"`, `player_two_ai_type="gemini"`.
+            * Monitor as above.
+        * **Iterate:**
+            * If LLM responses are bad or parsing fails, refine `format_poker_state_for_llm` heavily. Make it clearer, more structured.
+            * Refine LLM temperature/model parameters.
+            * Improve parsing logic in `gpt_ai.py`/`gemini_ai.py`, including more robust error handling for unexpected LLM outputs.
+
+---
+
+### **Phase 4: Frontend Development for LLM vs. LLM Spectation**
+
+* **Goal:** Build a UI to start, observe, and step through LLM vs. LLM games.
+* **Tasks (`frontend/src/` directory):**
+    1.  **Type Definitions (`types/gameTypes.ts`):**
+        * **AI Agent:** Create TypeScript interfaces matching the Pydantic schemas (`CardResponse`, `PlayerAPIState`, `GameStateResponse`).
+        * Example:
+            ```typescript
+            export interface Card { rank: string; suit: string; }
+            export interface PlayerState { id: string; name: string; stack: number; hole_cards: (Card | null)[]; is_turn: boolean; last_action?: string; }
+            export interface GameState { game_id: string; players: PlayerState[]; community_cards: Card[]; pot: number; current_bet_to_match: number; betting_round_name: string; is_game_over: boolean; current_actor_player_id: string | null; dealer_button_player_id: string; last_action_description?: string; }
+            ```
+    2.  **API Service (`services/gameApi.ts`):**
+        * Imports: `axios`, `GameState` (and request types if defined, e.g., `StartGamePayload`).
+        * `const API_BASE_URL = "http://localhost:8000/api/v1/game";`
+        * `export const startGameApi = async (playerOneAiType: string, playerTwoAiType: string): Promise<GameState> => { ... axios.post(`${API_BASE_URL}/start`, { player_one_ai_type: playerOneAiType, player_two_ai_type: playerTwoAiType, human_player_index: null }) ... }`
+        * `export const getGameStateApi = async (gameId: string): Promise<GameState> => { ... axios.get(`${API_BASE_URL}/${gameId}/state`) ... }`
+        * `export const advanceAiTurnApi = async (gameId: string): Promise<GameState> => { ... axios.post(`${API_BASE_URL}/${gameId}/advance_ai_turn`) ... }`
+        * **AI Agent:** Implement proper error handling for API calls (e.g., try/catch, logging errors).
+    3.  **Core Components (`components/`):**
+        * **`LLMSelector.tsx`:**
+            * Props: `onStartGame: (ai1: string, ai2: string) => void; isLoading: boolean;`
+            * State: `player1Ai: string`, `player2Ai: string` (default to "dummy" or "gpt").
+            * UI: Two dropdowns (select "dummy", "gpt", "gemini") for Player 1 and Player 2. A "Start Game" button (disabled if `isLoading`).
+            * Action: Button calls `onStartGame(player1Ai, player2Ai)`.
+        * **`PlayerDisplay.tsx`:**
+            * Props: `player: PlayerState; isDealer: boolean; showCards: boolean;` (showCards true if game over or human player's own cards)
+            * UI: Displays player name, stack, cards (face down "??" or face up), dealer button icon. Highlight if `player.is_turn`. Show `player.last_action`.
+        * **`PokerTable.tsx`:**
+            * Props: `gameState: GameState | null;`
+            * UI:
+                * Renders two `PlayerDisplay` components (one for each player in `gameState.players`). Determine dealer status based on `gameState.dealer_button_player_id`.
+                * Displays community cards (`gameState.community_cards`).
+                * Displays pot size (`gameState.pot`).
+                * Displays current betting round (`gameState.betting_round_name`).
+                * Displays `gameState.last_action_description`.
+                * Displays winner info if `gameState.is_game_over` (e.g., by checking payoffs or final stacks).
+        * **`ActionLog.tsx` (Optional for now, can integrate into PokerTable or use `last_action_description`):**
+            * Props: `actions: string[];` (A list of formatted action strings)
+            * UI: Displays a scrollable list of actions.
+        * **`GameControls.tsx`:**
+            * Props: `onNextAiTurn: () => void; onResetGame: () => void; gameId: string | null; isGameOver: boolean; isLoading: boolean;`
+            * UI:
+                * "Next AI Turn" button (enabled if `gameId` exists, `!isGameOver`, `!isLoading`).
+                * "Reset Game" (or "New Game") button (calls `onResetGame`).
+    4.  **`App.tsx` State Management & Workflow:**
+        * State:
+            * `gameId: string | null = null;`
+            * `gameState: GameState | null = null;`
+            * `isLoading: boolean = false;` (for API calls)
+            * `error: string | null = null;`
+        * Functions:
+            * `handleStartGame = async (ai1: string, ai2: string) => { setIsLoading(true); setError(null); try { const data = await startGameApi(ai1, ai2); setGameState(data); setGameId(data.game_id); } catch (err) { setError("Failed to start game."); console.error(err); } setIsLoading(false); };`
+            * `handleNextAiTurn = async () => { if (!gameId || gameState?.is_game_over) return; setIsLoading(true); setError(null); try { const data = await advanceAiTurnApi(gameId); setGameState(data); } catch (err) { setError("Failed to advance AI turn."); console.error(err); } setIsLoading(false); };`
+            * `handleResetGame = () => { setGameId(null); setGameState(null); setError(null); };`
+        * Render Logic:
+            * If `!gameId`, render `LLMSelector` with `onStartGame={handleStartGame}`.
+            * If `gameId`, render `PokerTable` with `gameState`. Render `GameControls` with appropriate handlers.
+            * Display `isLoading` indicators and `error` messages.
+        * **AI Agent:** Use `useEffect` for any side effects, like fetching initial state if a `gameId` was persisted (though not for V1).
+    5.  **Styling:** Basic CSS for layout and readability.
+
+---
+
+### **Phase 5: Human vs. LLM Gameplay**
+
+* **Goal:** Allow a human user to play against an LLM.
+* **Tasks:**
+    1.  **Backend - `StartGameRequest` Schema Update (`schemas.py`):**
+        * Already supports `human_player_index: Optional[int]`.
+    2.  **Backend - `GameService` Modifications (`game_service.py`):**
+        * `create_new_game_instance`: Ensure `player_name` in `game_player_identities` is set to "Human" if `human_player_index` matches.
+        * `run_ai_vs_ai_game_turn`:
+            * Before getting AI instance, check if `player_name_or_type == "Human"`. If so, this function should not proceed for that player; it should only run for actual AI players. The game loop will be driven by human actions when it's their turn.
+        * `process_human_action`:
+            * After successfully processing a human action and updating `pk_state`:
+                * `self.games[game_id] = updated_pk_state`
+                * `# Crucial: Check if the game is over OR if it's now an AI's turn`
+                * `if updated_pk_state.status:`
+                    * `next_actor_index = updated_pk_state.actor_index`
+                    * `next_actor_type = self.game_player_identities[game_id].get(next_actor_index)`
+                    * `if next_actor_type and next_actor_type.lower() != "human":`
+                        * `# It's now an AI's turn. Trigger the AI's move immediately.`
+                        * `print(f"Human action processed. Now AI ({next_actor_type}) turn for game {game_id}.")`
+                        * `# IMPORTANT: Do NOT `await` this call directly in `process_human_action` if it can be long,`
+                        * `# as it will block the HTTP response to the human. `
+                        * `# For V1, a simple await might be acceptable, or frontend makes a second call.`
+                        * `# For a better UX, this could be a background task, and frontend polls or uses websockets.`
+                        * `# Simplest V1 approach: Frontend calls /action for human, then /advance_ai_turn if AI is next.`
+                        * `# OR: Backend makes the AI move and returns state *after* AI has moved.`
+                        * `# Let's assume for now that process_human_action returns state after human, and frontend calls advance_ai_turn`
+                        * `pass # Frontend will call advance_ai_turn`
+                * `return self._pokerkit_state_to_api_response(game_id, updated_pk_state)`
+    3.  **Frontend - `LLMSelector.tsx` Update:**
+        * Modify to allow selecting "Human" for one of the players.
+        * When "Human" is selected, pass the correct `human_player_index` (0 or 1) in the `startGameApi` call.
+    4.  **Frontend - New `ActionControls.tsx` Component:**
+        * Props: `gameState: GameState; onPlayerAction: (actionType: string, amount?: number) => void; isLoading: boolean; humanPlayerId: string | null;`
+        * UI: Buttons for Fold, Check/Call, Bet/Raise slider/input.
+        * Logic:
+            * Enable/disable buttons based on:
+                * `!gameState.is_game_over`
+                * `gameState.current_actor_player_id === humanPlayerId`
+                * Valid actions derived from `gameState` (e.g., can't "Check" if there's a bet to `current_bet_to_match`). This requires more detailed parsing of PokerKit's possibilities on the frontend or more detailed info from backend.
+                * **Simplification:** Backend's `GameStateResponse` could include a list of valid action types for the current player.
+            * "Fold" button calls `onPlayerAction("fold")`.
+            * "Check/Call" button: If `gameState.current_bet_to_match > 0`, text is "Call X", calls `onPlayerAction("call", gameState.current_bet_to_match)`. Else text is "Check", calls `onPlayerAction("check")`.
+            * "Raise" button/input: Calls `onPlayerAction("raise", raiseAmount)`. Validate `raiseAmount` against min/max derived from game state (requires backend to provide min/max raise amounts or frontend to calculate).
+    5.  **Frontend - `App.tsx` Updates:**
+        * State: `humanPlayerId: string | null = null;` (store the ID of the human player).
+        * `handleStartGame`: If human is playing, find their ID from the initial `GameStateResponse` and store it in `humanPlayerId`.
+        * New handler: `handlePlayerAction = async (actionType: string, amount?: number) => { ... call API `POST /{game_id}/action` with `{ player_id: humanPlayerId, action_type: actionType, amount: amount }`. Update `gameState`. ... After this, if it's AI's turn, human might click "Let AI Play" or it auto-triggers. }`
+        * Modify render logic:
+            * If `gameState.current_actor_player_id === humanPlayerId && !gameState.is_game_over`, render `ActionControls`.
+            * Otherwise, if it's an AI's turn, the "Next AI Turn" button (from `GameControls`) is still relevant.
+    6.  **Frontend Workflow (Human vs LLM):**
+        * User selects "Human" as P1 and "gpt" as P2. Clicks "Start Game".
+        * `App.tsx` calls `startGameApi`, gets initial `gameState`, sets `humanPlayerId` to `gameState.players[0].id`.
+        * If it's human's turn (`gameState.current_actor_player_id === humanPlayerId`):
+            * `ActionControls` are enabled. Human clicks "Call".
+            * `handlePlayerAction` is called, which POSTs to `/api/v1/game/{game_id}/action`.
+            * Backend processes human action. Response updates `gameState`.
+            * Now, if it's AI's turn:
+                * The "Next AI Turn" button (from `GameControls`) should be visible/enabled. Human clicks it.
+                * `handleNextAiTurn` calls `POST /api/v1/game/{game_id}/advance_ai_turn`.
+                * Backend processes AI action. Response updates `gameState`.
+                * Loop continues.
+    7.  **Refinement for `_pokerkit_state_to_api_response` (`game_service.py`):**
+        * To aid the frontend with `ActionControls`, add more detail to `GameStateResponse`:
+            * `available_actions: Optional[List[str]]` (e.g., ["fold", "call", "raise"])
+            * `min_raise_amount: Optional[int]`
+            * `max_raise_amount: Optional[int]`
+            * Populate these by checking `pk_state.can_fold()`, `pk_state.can_check_or_call()`, `pk_state.min_completion_betting_or_raising_to_amount`, etc., ONLY for the `current_actor_player_id`.
+
+---
+
+### **Phase 6: Refinement and Advanced Features**
+
+* **Goal:** Polish the application and add more features.
+* **Tasks:**
+    1.  **LLM Prompt Engineering:**
+        * **AI Agent:** Continuously review game logs. If LLMs make poor or illegal moves, refine `format_poker_state_for_llm`. Experiment with:
+            * Different ways to describe game history.
+            * Adding "strategy hints" (e.g., "You are a generally aggressive player").
+            * Few-shot examples in the prompt (if supported and effective).
+            * Simplifying the output format request if parsing is an issue.
+    2.  **Error Handling (Backend & Frontend):**
+        * Backend: Implement global exception handlers in FastAPI for common errors. Return consistent JSON error responses.
+        * Frontend: Display user-friendly error messages from API responses or network issues. Prevent multiple submissions while `isLoading`.
+    3.  **UI/UX Polish:**
+        * Clear visual cues for active player.
+        * "AI is thinking..." indicator on frontend when `advance_ai_turn` or AI part of `process_human_action` is running.
+        * Better display of betting amounts, chips.
+        * Showdown: Clearly display winning hand(s) and who won the pot. PokerKit's `pk_state.payoffs` can be useful after a hand is finished (if `not pk_state.status`).
+    4.  **Logging (Backend):**
+        * Use Python's `logging` module.
+        * Log game creation, significant state changes, all AI prompts and responses (raw and parsed), errors.
+        * Configurable log levels.
+    5.  **(Optional) PokerKit Hand History:**
+        * Explore `pokerkit.HandHistory` objects.
+        * `pk_state.to_hand_history()` can serialize a completed hand.
+        * Consider storing these (V2 feature) or displaying them.
+    6.  **(Optional) Websockets:**
+        * For LLM vs LLM, instead of frontend polling with "Next AI Turn", backend could push updates via WebSockets after each AI move. This is a significant architectural change. (V2 or later).
+
+## Key PokerKit Concepts to Leverage
+
+**AI Agent:** Refer to this section frequently when implementing PokerKit interactions to ensure correct usage of the library.
+
+* **Game Initialization:** `pokerkit.games.NoLimitTexasHoldem.create_state((stacks, blinds), automations=...)`
+* **State Object:** The `pokerkit.state.State` object is central.
+    * `state.player_count`
+    * `state.button_index` (dealer button for the hand)
+    * `state.blinds_or_straddles`
+* **Core Actions (call these on the `state` object):**
+    * `state.fold()`
+    * `state.check_or_call()`
+    * `state.complete_bet_or_raise_to(amount)`
+* **Action Validation (check these before calling action methods):**
+    * `state.can_fold() -> bool`
+    * `state.can_check_or_call() -> bool`
+        * Use `state.checking_or_calling_amount: int` to get the call amount (0 if check is possible).
+    * `state.can_complete_bet_or_raise_to(amount: Optional[int] = None) -> bool`
+        * Use `state.min_completion_betting_or_raising_to_amount: Optional[int]`
+        * Use `state.max_completion_betting_or_raising_to_amount: Optional[int]` (usually player's full stack)
+* **State Inspection (read these attributes from the `state` object):**
+    * `state.actor_index: Optional[int]` (current player to act index)
+    * `state.status: bool` (True if game is ongoing, False if hand/game is over)
+    * `state.stacks: list[int]` (list of player stacks by index)
+    * `state.bets: list[int]` (list of current bets in the round by index)
+    * `state.pot_amounts: pokerkit.utilities.Values` (iterator for main and side pots; use `state.total_pot_amount: int` for simplicity)
+    * `state.hole_cards: list[tuple[pokerkit.Card, pokerkit.Card]]` (direct access to all hole cards)
+    * `state.get_censored_hole_cards(player_index: int) -> tuple[Optional[pokerkit.Card], ...]` (for showing to specific player or observer)
+    * `state.board_cards: tuple[pokerkit.Card, ...]` (community cards)
+    * `state.operations: list[pokerkit.Operation]` (chronological list of actions and game events)
+    * `state.street_index: int` (0: Preflop, 1: Flop, 2: Turn, 3: River)
+    * `state.payoffs: Optional[list[int]]` (list of payoffs for each player at the end of the hand, None if hand not finished)
+* **Dealing (PokerKit handles this with `Automation.ALL_AUTOMATED_BY_POKERKIT`):**
+    * If manual control needed: `state.deal_hole(cards, player_index)`, `state.deal_board(cards)`, `state.burn_card(card)`.
+* **Showdown & Winner Determination:** Largely handled by PokerKit if automations are enabled. `state.payoffs` gives the net change to stacks. `state.get_hand(player_index)` can evaluate a player's best 5-card hand from their hole cards and board cards.
+
+## Conclusion
+
+This refined roadmap provides a highly structured, step-by-step approach to building the LLM Poker Arena. The primary challenges will remain in prompt engineering for LLMs and robustly parsing their varied responses. Good luck with the implementation! Remember to commit frequently and test each small piece of functionality.
