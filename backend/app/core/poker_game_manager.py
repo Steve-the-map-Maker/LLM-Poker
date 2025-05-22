@@ -1,16 +1,19 @@
 import uuid
 from typing import Dict, List, Optional, Tuple
 
-from pokerkit import NoLimitTexasHoldem, State, Automation, Mode
+import pokerkit
+from pokerkit import NoLimitTexasHoldem, State, Mode
 
 class PokerGameManager:
     """
     Manages active poker game instances using PokerKit.
     Games are stored in-memory.
     """
-    def __init__(self):
+    def __init__(self, initial_stacks: Optional[List[int]] = None):
         """Initializes the PokerGameManager with an empty dictionary for active games."""
         self.active_games: Dict[str, State] = {}
+        self.initial_stacks = initial_stacks if initial_stacks is not None else [20000, 20000]  # Default 200 BBs if BB is 100
+        self.default_automations = pokerkit.Automation  # Revert to using pokerkit.Automation to include all available automations.
 
     def create_game(
         self,
@@ -33,27 +36,15 @@ class PokerGameManager:
         current_min_bet = blinds_tuple[1]
         player_count = len(player_stacks)
 
-        # Default automations as per PokerKit best practices/examples
-        default_automations = (
-            Automation.ANTE_POSTING,
-            Automation.BET_COLLECTION,
-            Automation.BLIND_OR_STRADDLE_POSTING,
-            Automation.HOLE_DEALING,  # Added HOLE_DEALING
-            Automation.HOLE_CARDS_SHOWING_OR_MUCKING,
-            Automation.HAND_KILLING,
-            Automation.CHIPS_PUSHING,
-            Automation.CHIPS_PULLING,
-        )
-
         game_state = NoLimitTexasHoldem.create_state(
-            default_automations,  # automations
-            False,                # ante_trimming_status (uniform antes)
-            ante,                 # raw_antes 
-            blinds_tuple,         # raw_blinds_or_straddles
-            current_min_bet,      # min_bet
-            player_stacks,        # raw_starting_stacks
-            player_count,         # player_count
-            mode=Mode.CASH_GAME   # mode
+            self.default_automations,  # automations
+            False,                     # ante_trimming_status (uniform antes)
+            ante,                      # raw_antes 
+            blinds_tuple,              # raw_blinds_or_straddles
+            current_min_bet,           # min_bet
+            player_stacks,             # raw_starting_stacks
+            player_count,              # player_count
+            mode=Mode.CASH_GAME        # mode
         )
         
         self.active_games[game_id] = game_state

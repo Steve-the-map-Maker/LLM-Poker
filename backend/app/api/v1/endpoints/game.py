@@ -10,9 +10,10 @@ router = APIRouter()
 # Dependency for game manager (singleton-like for the app lifecycle)
 # In a real app, you might manage this with FastAPI's app state or a more robust DI system.
 poker_game_manager = PokerGameManager()
+game_service_instance = GameService(poker_game_manager) # Instantiate GameService once
 
 def get_game_service():
-    return GameService(poker_game_manager)
+    return game_service_instance # Return the single instance
 
 @router.post("/start", response_model=GameStateResponse)
 async def start_new_game(
@@ -89,13 +90,18 @@ async def advance_ai_turn(
     """
     If it's an AI's turn, fetches the AI's move and applies it. 
     Invokes `game_service.run_ai_vs_ai_game_turn`.
-    (This is a placeholder for Phase 2)
     """
     try:
-        game_state = game_service.run_ai_vs_ai_game_turn(game_id)
+        # The service method is now async
+        game_state = await game_service.run_ai_vs_ai_game_turn(game_id)
         if game_state.error_message:
+             # Handle errors returned in the GameStateResponse from the service layer
+             # These could be due to AI errors, invalid game state, etc.
              raise HTTPException(status_code=400, detail=game_state.error_message)
         return game_state
+    except ValueError as e: # Catch specific ValueErrors if service raises them directly
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        # Log the exception e
+        # Log the exception e for debugging
+        print(f"Unhandled exception in /advance_ai_turn for game {game_id}: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to advance AI turn: {str(e)}")
