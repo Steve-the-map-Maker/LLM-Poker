@@ -1,0 +1,166 @@
+.App {
+  text-align: center;
+  font-family: Arial, sans-serif;
+  padding: 20px;
+}
+
+.App-header {
+  background-color: #282c34;
+  padding: 20px;
+  color: white;
+  margin-bottom: 30px;
+}
+
+.App-header h1 {
+  margin: 0;
+  font-size: 2.5em;
+}
+
+main {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.error-message {
+  color: red;
+  background-color: #ffe0e0;
+  border: 1px solid red;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 5px;
+}
+
+.loading-message {
+  color: #007bff;
+  font-size: 1.2em;
+  margin-bottom: 15px;
+}
+
+/* LLMSelector Styles */
+div > h2 {
+  margin-bottom: 20px;
+}
+
+div > div {
+  margin-bottom: 15px;
+}
+
+div > div > label {
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+div > div > select {
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  min-width: 150px;
+}
+
+div > button, button {
+  padding: 10px 20px;
+  font-size: 1em;
+  color: white;
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin: 5px;
+}
+
+div > button:hover, button:hover {
+  background-color: #0056b3;
+}
+
+div > button:disabled, button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* PokerTable Styles */
+.poker-table {
+  border: 1px solid #ddd;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.poker-table.loading {
+  text-align: center;
+  padding: 30px;
+  font-style: italic;
+}
+
+.poker-table h3 {
+  color: #333;
+  margin-top: 0;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.players-container {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
+}
+
+.table-info h4 {
+  margin: 10px 0;
+  font-size: 1.1em;
+  color: #555;
+}
+
+.table-info h4:first-child {
+  margin-top: 0;
+}
+
+/* PlayerDisplay Styles */
+.player-display {
+  border: 1px solid #ccc;
+  padding: 15px;
+  border-radius: 6px;
+  width: 45%; /* Adjust as needed */
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.player-display.loading {
+  font-style: italic;
+  color: #777;
+}
+
+.player-display.actor {
+  border-color: #007bff;
+  box-shadow: 0 0 8px rgba(0,123,255,0.5);
+}
+
+.player-display h4 {
+  margin-top: 0;
+  color: #007bff;
+  font-size: 1.3em;
+}
+
+.player-display p {
+  margin: 8px 0;
+  font-size: 1em;
+  color: #333;
+}
+
+.player-display p:last-child {
+  margin-bottom: 0;
+}
+
+/* GameControls Styles */
+.game-controls {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.game-controls button {
+  margin: 0 10px;
+}
+
