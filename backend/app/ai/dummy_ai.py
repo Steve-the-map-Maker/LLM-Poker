@@ -1,6 +1,6 @@
 import pokerkit
-from backend.app.ai.base_ai import AIPlayer
-from backend.app.api.v1.poker_schemas import PlayerActionRequest # Adjusted import path
+from app.ai.base_ai import AIPlayer
+from app.api.v1.poker_schemas import PlayerActionRequest # Adjusted import path
 
 class DummyAI(AIPlayer):
     async def get_action(self, pk_state: pokerkit.State, player_index: int, game_id: str, player_name: str) -> PlayerActionRequest:

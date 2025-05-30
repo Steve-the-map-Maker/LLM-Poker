@@ -2,10 +2,10 @@ from typing import List, Optional, Tuple, Dict, Any
 from uuid import UUID
 
 from pokerkit import State
-from backend.app.core.poker_game_manager import PokerGameManager
-from backend.app.api.v1.poker_schemas import GameStateResponse, PlayerActionRequest, StartGameRequest
-from backend.app.ai.base_ai import AIPlayer
-from backend.app.ai.dummy_ai import DummyAI
+from app.core.poker_game_manager import PokerGameManager
+from app.api.v1.poker_schemas import GameStateResponse, PlayerActionRequest, StartGameRequest
+from app.ai.base_ai import AIPlayer
+from app.ai.dummy_ai import DummyAI
 
 class GameService:
     """

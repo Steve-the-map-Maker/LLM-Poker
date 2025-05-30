@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from pokerkit import State
-from backend.app.api.v1.poker_schemas import PlayerActionRequest # Adjusted import path
+from app.api.v1.poker_schemas import PlayerActionRequest # Adjusted import path
 
 class AIPlayer(ABC):
     @abstractmethod

@@ -3,7 +3,7 @@ import uuid
 
 from pokerkit import State
 
-from backend.app.core.poker_game_manager import PokerGameManager
+from app.core.poker_game_manager import PokerGameManager
 
 class TestPokerGameManager(unittest.TestCase):
     def setUp(self):

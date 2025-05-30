@@ -4,9 +4,9 @@ import uuid
 
 from pokerkit import State, NoLimitTexasHoldem, Automation
 
-from backend.app.core.poker_game_manager import PokerGameManager
-from backend.app.services.game_service import GameService
-from backend.app.api.v1.poker_schemas import StartGameRequest, PlayerActionRequest, GameStateResponse
+from app.core.poker_game_manager import PokerGameManager
+from app.services.game_service import GameService
+from app.api.v1.poker_schemas import StartGameRequest, PlayerActionRequest, GameStateResponse
 
 class TestGameService(unittest.TestCase):
     def setUp(self):

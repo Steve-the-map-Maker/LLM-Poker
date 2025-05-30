@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends
 from typing import Optional
 
-from backend.app.api.v1.poker_schemas import StartGameRequest, GameStateResponse, PlayerActionRequest
-from backend.app.services.game_service import GameService
-from backend.app.core.poker_game_manager import PokerGameManager
+from app.api.v1.poker_schemas import StartGameRequest, GameStateResponse, PlayerActionRequest
+from app.services.game_service import GameService
+from app.core.poker_game_manager import PokerGameManager
 
 router = APIRouter()
 
