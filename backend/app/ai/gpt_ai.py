@@ -1,4 +1,4 @@
-import google.generativeai as genai
+import openai
 import pokerkit
 from typing import List
 from app.ai.base_ai import AIPlayer
@@ -6,32 +6,35 @@ from app.api.v1.poker_schemas import PlayerActionRequest
 from app.ai.llm_prompts import format_poker_state_for_llm
 from app.config import settings
 
-class GeminiAI(AIPlayer):
+class GPTAI(AIPlayer):
     def __init__(self):
-        # Try GOOGLE_API_KEY first, then fall back to GEMINI_API_KEY if needed
-        self.api_key = settings.GOOGLE_API_KEY or settings.GEMINI_API_KEY
+        self.api_key = settings.OPENAI_API_KEY
         if not self.api_key:
-            raise ValueError("API key for Google not found. Please set GOOGLE_API_KEY or GEMINI_API_KEY in .env file.")
+            raise ValueError("API key for OpenAI not found.")
         
-        # Configure Gemini
-        genai.configure(api_key=self.api_key)
-        self.model = genai.GenerativeModel(model_name='gemini-1.5-flash-latest')
+        # Initialize OpenAI client
+        self.client = openai.AsyncOpenAI(api_key=self.api_key)
     
     async def get_action(self, pk_state: pokerkit.State, player_index: int, game_id: str, player_name: str) -> PlayerActionRequest:
         # 1. Format state into prompt
         # Note: history for the prompt might be just pk_state.operations, or a separately maintained list of action strings.
         # For now, format_poker_state_for_llm handles operations internally.
         prompt = format_poker_state_for_llm(pk_state, player_index, game_id, player_name, [])
-        print(f"\n--- Prompt for {player_name} (Gemini) ---")
+        print(f"\n--- Prompt for {player_name} (GPT) ---")
         print(prompt)
         print("-----------------------------------\n")
         llm_response_text = None
         # 2. Make API call to LLM
         try:
-            # Make the API call to Gemini
-            response = await self.model.generate_content_async(prompt)
-            llm_response_text = response.text.strip()
-            print(f"Gemini Raw Response for {player_name}: {llm_response_text}")
+            # Example for OpenAI:
+            response = await self.client.chat.completions.create(
+                model="gpt-3.5-turbo",  # or "gpt-4"
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=50, 
+                temperature=0.5
+            )
+            llm_response_text = response.choices[0].message.content.strip()
+            print(f"GPT Raw Response for {player_name}: {llm_response_text}")
         except Exception as e:
             print(f"Error calling LLM API for {player_name}: {e}")
             return PlayerActionRequest(action_type="fold")  # Default to fold on API error

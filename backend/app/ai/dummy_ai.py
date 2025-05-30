@@ -6,11 +6,6 @@ class DummyAI(AIPlayer):
     async def get_action(self, pk_state: pokerkit.State, player_index: int, game_id: str, player_name: str) -> PlayerActionRequest:
         print(f"DummyAI ({player_name}, index {player_index}) is thinking for game {game_id}...")
         
-        # Log hole cards for the AI itself (not for general logging if sensitive)
-        # hole_cards_obj = pk_state.hole_cards[player_index]
-        # hole_cards_str = " and ".join([str(card) for card in hole_cards_obj]) if hole_cards_obj else "None"
-        # print(f"Hole cards: {hole_cards_str}")
-
         # Simple logic: always call/check if possible, otherwise fold.
         if pk_state.can_check_or_call():
             amount_to_call = pk_state.checking_or_calling_amount

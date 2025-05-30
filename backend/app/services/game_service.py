@@ -6,6 +6,8 @@ from app.core.poker_game_manager import PokerGameManager
 from app.api.v1.poker_schemas import GameStateResponse, PlayerActionRequest, StartGameRequest
 from app.ai.base_ai import AIPlayer
 from app.ai.dummy_ai import DummyAI
+from app.ai.gpt_ai import GPTAI
+from app.ai.gemini_ai import GeminiAI
 
 class GameService:
     """
@@ -16,7 +18,9 @@ class GameService:
         self.game_manager = game_manager
         self.game_player_identities: Dict[str, Dict[int, str]] = {}  # Stores AI type or "human" for each player_index in a game
         self.ai_constructors: Dict[str, type[AIPlayer]] = {
-            "dummy": DummyAI
+            "dummy": DummyAI,
+            "gpt": GPTAI,
+            "gemini": GeminiAI
         }
 
     def _get_ai_instance(self, ai_type: str) -> AIPlayer:
@@ -251,7 +255,6 @@ class GameService:
         try:
             ai_player = self._get_ai_instance(player_name_or_type)
             ai_action_request = await ai_player.get_action(pk_state, current_player_index, game_id, player_name_or_type)
-            
             action_taken_details["action"] = ai_action_request.action_type
             if ai_action_request.amount is not None:
                  action_taken_details["amount"] = ai_action_request.amount

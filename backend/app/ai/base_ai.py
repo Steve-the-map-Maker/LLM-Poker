@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from pokerkit import State
 from app.api.v1.poker_schemas import PlayerActionRequest # Adjusted import path
+from typing import Tuple, Optional
 
 class AIPlayer(ABC):
     @abstractmethod
