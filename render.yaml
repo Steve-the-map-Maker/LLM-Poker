@@ -12,9 +12,9 @@ services:
       - key: FRONTEND_URL
         sync: false # Set this to your frontend URL after deployment (e.g. https://poker-frontend.onrender.com)
 
-  # Frontend Static Site
-  - type: static
-    name: poker-frontend
+# Frontend Static Site
+staticSites:
+  - name: poker-frontend
     runtime: node
     rootDir: frontend
     buildCommand: npm install && npm run build
