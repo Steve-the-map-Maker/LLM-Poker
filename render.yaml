@@ -17,7 +17,6 @@ services:
   - type: web
     name: poker-frontend
     runtime: static
-    plan: free
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: ./build
