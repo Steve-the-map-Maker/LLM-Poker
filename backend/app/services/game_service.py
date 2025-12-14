@@ -354,6 +354,7 @@ class GameService:
         player_models_for_game = self.game_player_models.get(game_id, {})
         player_model = player_models_for_game.get(current_player_index, None)
 
+        ai_player = None  # Initialize to avoid "unbound local variable" errors
         try:
             ai_player = self._get_ai_instance(player_name_or_type, model_name=player_model)
             ai_action_request = await ai_player.get_action(pk_state, current_player_index, game_id, player_name_or_type)
@@ -421,7 +422,7 @@ class GameService:
         
         # Check if AI had an error (rate limit, API error, etc.)
         ai_error_message = None
-        if hasattr(ai_player, 'last_error') and ai_player.last_error:
+        if ai_player is not None and hasattr(ai_player, 'last_error') and ai_player.last_error:
             ai_error_message = ai_player.last_error
         
         # Generate AI reasoning message for chat panel (without revealing cards)
