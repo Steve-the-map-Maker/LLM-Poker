@@ -15,7 +15,6 @@ services:
 # Frontend Static Site
 staticSites:
   - name: poker-frontend
-    runtime: node
     rootDir: frontend
     buildCommand: npm install && npm run build
     publishDir: build
