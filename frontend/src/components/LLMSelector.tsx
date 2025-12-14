@@ -13,7 +13,7 @@ const LLMSelector: React.FC<LLMSelectorProps> = ({ onStartGame, isLoading }) => 
     const [stackSize, setStackSize] = useState<number>(10000);
     const [bigBlind, setBigBlind] = useState<number>(100);
 
-    const playerOptions = ["human", "dummy", "gpt", "gemini"];
+    const playerOptions = ["human", "dummy", "gemini"]; // GPT temporarily disabled
     const geminiModelOptions = [
         "gemini-2.5-flash-lite",
         "gemini-2.5-flash"
