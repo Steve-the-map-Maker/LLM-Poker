@@ -10,14 +10,15 @@ services:
       - key: PYTHON_VERSION
         value: 3.11.0
       - key: FRONTEND_URL
-        sync: false # Set this to your frontend URL after deployment (e.g. https://poker-frontend.onrender.com)
+        sync: false # Set this to your frontend URL after deployment
 
-# Frontend Static Site
-staticSites:
-  - name: poker-frontend
+  # Frontend Static Site
+  - type: web
+    name: poker-frontend
+    runtime: static
     rootDir: frontend
     buildCommand: npm install && npm run build
-    publishDir: build
+    staticPublishPath: ./build
     routes:
       - type: rewrite
         source: /*
