@@ -1,0 +1,214 @@
+/* PlayerDisplay.css */
+
+.player-display {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+/* Avatar Circle */
+.player-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #333;
+    border: 3px solid #555;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 5px;
+    position: relative;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.player-avatar.active {
+    border-color: var(--accent-gold);
+    box-shadow: 0 0 15px var(--accent-gold);
+}
+
+.player-avatar.winner {
+    border-color: #4CAF50;
+    box-shadow: 0 0 20px #4CAF50;
+}
+
+.avatar-initial {
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+}
+
+/* Dealer Button */
+.dealer-button {
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    width: 20px;
+    height: 20px;
+    background-color: white;
+    color: black;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+    font-size: 12px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 5;
+}
+
+/* Info Box (Name/Stack) */
+.player-info {
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 4px 8px;
+    border-radius: 4px;
+    text-align: center;
+    min-width: 80px;
+}
+
+.player-name {
+    font-size: 0.9em;
+    color: #fff;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100px;
+}
+
+.player-stack {
+    font-size: 0.8em;
+    color: var(--accent-gold);
+    margin: 0;
+    font-weight: bold;
+}
+
+/* Hole Cards - Floating near/behind avatar */
+.player-cards {
+    position: absolute;
+    top: -40px;
+    /* Adjust to float above/behind */
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: -20px;
+    /* Overlap cards */
+    z-index: 2;
+    /* Behind avatar? Or in front? Usually front but small. */
+    /* Let's put them slightly overlapping the avatar or just above */
+}
+
+/* Overlap effect */
+.player-cards .poker-card {
+    margin: 0 -15px;
+    /* Negative margin for overlap */
+    transition: margin 0.2s;
+    box-shadow: -2px 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.player-cards:hover .poker-card {
+    margin: 0 2px;
+    /* Spread on hover */
+    z-index: 10;
+}
+
+/* Current Bet with Chip Stack */
+.player-bet {
+    margin-top: 8px;
+    background: linear-gradient(145deg, rgba(40, 40, 40, 0.95), rgba(20, 20, 20, 0.95));
+    border: 2px solid rgba(255, 215, 0, 0.4);
+    border-radius: 20px;
+    padding: 6px 14px;
+    color: #ffd700;
+    font-size: 0.9em;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Chip Stack Icon */
+.chip-stack {
+    display: flex;
+    flex-direction: column;
+    gap: -6px;
+    position: relative;
+}
+
+.chip-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-block;
+    position: relative;
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 50%, #a93226 100%);
+    border: 2px solid #fff;
+    box-shadow:
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.3),
+        0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.chip-icon::before {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    right: 3px;
+    bottom: 3px;
+    border: 2px dashed rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+}
+
+.chip-icon::after {
+    content: '$';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 10px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.last-action-bubble {
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    transform: translateY(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    white-space: nowrap;
+    margin-left: 10px;
+    pointer-events: none;
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+    from {
+        transform: translateY(-50%) scale(0);
+    }
+
+    to {
+        transform: translateY(-50%) scale(1);
+    }
+}

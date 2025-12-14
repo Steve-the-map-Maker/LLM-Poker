@@ -3,36 +3,66 @@ import React from 'react';
 interface GameControlsProps {
     onNextAiTurn: () => void;
     onResetGame: () => void;
+    onNextHand: () => void;     // NEW
     gameId: string | null;
     isGameOver: boolean;
     isLoading: boolean;
-    isHumanPlayer?: boolean; // Added: Optional prop to indicate if a human is playing
-    isHumanTurn?: boolean;   // Added: Optional prop to indicate if it's the human's turn
+    isHumanPlayer?: boolean;
+    isHumanTurn?: boolean;
+    autoPlay: boolean;
+    onToggleAutoPlay: () => void;
 }
 
-const GameControls: React.FC<GameControlsProps> = ({ 
-    onNextAiTurn, 
-    onResetGame, 
-    gameId, 
-    isGameOver, 
+const GameControls: React.FC<GameControlsProps> = ({
+    onNextAiTurn,
+    onResetGame,
+    onNextHand,      // Destructure
+    gameId,
+    isGameOver,
     isLoading,
-    isHumanPlayer, // Destructure new prop
-    isHumanTurn    // Destructure new prop
+    isHumanPlayer,
+    isHumanTurn,
+    autoPlay,
+    onToggleAutoPlay
 }) => {
     return (
         <div className="game-controls">
-            <button 
-                onClick={onNextAiTurn} 
-                // Disable if no game, game over, loading, or if it's a human player's turn
-                disabled={!gameId || isGameOver || isLoading || (isHumanPlayer && isHumanTurn)}
+            {!isGameOver && (
+                <button
+                    className={`auto-play-btn ${autoPlay ? 'active' : ''}`}
+                    onClick={onToggleAutoPlay}
+                    disabled={!gameId || isGameOver}
+                    style={{ backgroundColor: autoPlay ? '#ffc107' : '', color: autoPlay ? '#000' : '' }}
+                >
+                    {autoPlay ? 'Stop Auto-Play' : 'Start Auto-Play'}
+                </button>
+            )}
+
+            {isGameOver ? (
+                // Show Next Hand button if game is over (and valid gameId exists)
+                <button
+                    onClick={onNextHand}
+                    disabled={!gameId || isLoading}
+                    className="action-btn call-btn" // Reusing styling
+                    style={{ backgroundColor: '#28a745', color: 'white', fontWeight: 'bold' }}
+                >
+                    Start Next Hand
+                </button>
+            ) : (
+                <button
+                    onClick={onNextAiTurn}
+                    // Disable if no game, game over, loading, or if it's a human player's turn
+                    disabled={!gameId || isGameOver || isLoading || (isHumanPlayer && isHumanTurn) || autoPlay}
+                >
+                    {isLoading ? 'Processing...' : (isHumanPlayer && isHumanTurn) ? 'Waiting for Your Action' : 'Next AI Turn'}
+                </button>
+            )}
+
+            <button
+                onClick={onResetGame}
+                disabled={isLoading}
             >
-                {isLoading ? 'Processing...' : (isHumanPlayer && isHumanTurn) ? 'Waiting for Your Action' : 'Next AI Turn'}
-            </button>
-            <button 
-                onClick={onResetGame} 
-                disabled={isLoading} // Prevent reset while another action is loading
-            >
-                New Game / Reset
+                Reset / New Game
             </button>
         </div>
     );

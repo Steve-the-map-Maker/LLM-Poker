@@ -1,17 +1,56 @@
-from pydantic import BaseModel
-from typing import Optional, List, Any, Dict  # Added Dict
+from pydantic import BaseModel, Field, field_validator
+from typing import Optional, List, Any, Dict
+import re
 
 class PlayerActionRequest(BaseModel):
     player_id: Optional[str] = None  # For human player identification
-    action_type: str  # "fold", "call", "check", "raise"
-    amount: Optional[int] = None  # Total amount for a raise action
+    action_type: str = Field(..., pattern="^(fold|call|check|raise|bet)$")  # Validate action types
+    amount: Optional[int] = Field(None, ge=0)  # Amount must be >= 0 if provided
+
+class PlayerConfig(BaseModel):
+    name: Optional[str] = Field(None, max_length=50)  # Limit name length
+    ai_type: str = Field(..., pattern="^(human|dummy|gpt|gemini)$")  # Validate AI types
+    stack: Optional[int] = Field(None, ge=100, le=10000000)  # Stack between 100 and 10M
+    gemini_model: Optional[str] = Field(None, max_length=100)
+    gpt_model: Optional[str] = Field(None, max_length=100)
+    
+    @field_validator('name')
+    @classmethod
+    def sanitize_name(cls, v):
+        if v is not None:
+            # Remove any HTML/script tags for XSS prevention
+            v = re.sub(r'<[^>]+>', '', v)
+            v = v.strip()
+        return v
 
 class StartGameRequest(BaseModel):
-    player_one_ai_type: str
-    player_two_ai_type: str
-    human_player_index: Optional[int] = None
-    initial_stacks: Optional[List[int]] = [10000, 10000] # Default stacks
-    blinds: Optional[List[int]] = [50,100] # Default blinds
+    # Deprecated fields (kept for backward compatibility lightly, or optional)
+    player_one_ai_type: Optional[str] = None 
+    player_two_ai_type: Optional[str] = None
+    
+    # New Field
+    players: Optional[List[PlayerConfig]] = Field(None, max_length=6)  # Max 6 players
+    
+    human_player_index: Optional[int] = Field(None, ge=0, le=5)  # Valid player indices
+    initial_stacks: Optional[List[int]] = Field([10000, 10000], max_length=6)
+    blinds: Optional[List[int]] = Field([50, 100], max_length=2)
+    
+    @field_validator('blinds')
+    @classmethod
+    def validate_blinds(cls, v):
+        if v and len(v) >= 2:
+            if v[0] <= 0 or v[1] <= 0:
+                raise ValueError('Blinds must be positive values')
+            if v[0] >= v[1]:
+                raise ValueError('Small blind must be less than big blind')
+        return v
+    
+    @field_validator('players')
+    @classmethod
+    def validate_player_count(cls, v):
+        if v and len(v) < 2:
+            raise ValueError('Minimum 2 players required')
+        return v
 
 class GameStateResponse(BaseModel):
     game_id: str
@@ -24,6 +63,7 @@ class GameStateResponse(BaseModel):
     pot_total: int # Calculated from bets
     board_cards: List[str]
     player_hole_cards: Optional[Dict[int, List[str]]] = None # Keyed by player_index
+    player_names: Optional[List[str]] = None  # Actual player names from game setup
     payoffs: Optional[List[int]] = None
     available_actions: Optional[List[str]] = None # e.g. ["fold", "check_or_call", "complete_bet_or_raise_to"]
     checking_or_calling_amount: Optional[int] = None
@@ -32,3 +72,4 @@ class GameStateResponse(BaseModel):
     current_round_name: Optional[str] = None # e.g. "PREFLOP", "FLOP", "TURN", "RIVER", "SHOWDOWN"
     last_action_details: Optional[Dict[str, Any]] = None # Details of the last action taken
     error_message: Optional[str] = None
+    ai_message: Optional[str] = None  # AI thought/reasoning for chat panel

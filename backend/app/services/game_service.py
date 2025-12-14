@@ -17,28 +17,57 @@ class GameService:
     def __init__(self, game_manager: PokerGameManager):
         self.game_manager = game_manager
         self.game_player_identities: Dict[str, Dict[int, str]] = {}  # Stores AI type or "human" for each player_index in a game
+        self.game_player_models: Dict[str, Dict[int, str]] = {}  # Stores model name (e.g., gemini model) per player per game
+        self.game_player_names: Dict[str, List[str]] = {}  # Stores actual player names per game
         self.ai_constructors: Dict[str, type[AIPlayer]] = {
             "dummy": DummyAI,
             "gpt": GPTAI,
             "gemini": GeminiAI
         }
 
-    def _get_ai_instance(self, ai_type: str) -> AIPlayer:
+    def _get_ai_instance(self, ai_type: str, model_name: str = None) -> AIPlayer:
         """Helper method to instantiate an AI player based on its type."""
         constructor = self.ai_constructors.get(ai_type.lower())
         if not constructor:
             raise ValueError(f"Unknown AI type: {ai_type}")
+        
+        # For Gemini, pass the model name if provided
+        if ai_type.lower() == "gemini" and model_name:
+            return constructor(model_name=model_name)
+        
+        # For GPT, pass the model name if provided
+        if ai_type.lower() == "gpt" and model_name:
+            return constructor(model_name=model_name)
+        
         return constructor()
 
     def _pokerkit_state_to_api_response(
-        self, game_id: str, pk_state: State, human_player_index: Optional[int] = None
+        self, game_id: str, pk_state: State, human_player_index: Optional[int] = None, player_names: Optional[List[str]] = None
     ) -> GameStateResponse:
         """
         Transforms a PokerKit State object into a GameStateResponse Pydantic model.
         """
+        # Helper function to safely convert card to string
+        def card_to_str(card):
+            """Safely convert a card object to short string like 'Ah'."""
+            try:
+                if hasattr(card, 'rank') and hasattr(card, 'suit'):
+                    return f"{card.rank.value}{card.suit.value}"
+                elif isinstance(card, str):
+                    return card
+                elif isinstance(card, list):
+                    # Handle nested list (weird PokerKit edge case)
+                    if len(card) > 0:
+                        return card_to_str(card[0])
+                    return "??"
+                else:
+                    return str(card)
+            except Exception:
+                return "??"
+        
         current_board_cards = []
         if pk_state.board_cards:
-            current_board_cards = [str(card) for card in pk_state.board_cards]
+            current_board_cards = [card_to_str(card) for card in pk_state.board_cards]
         
         player_hole_cards: Dict[int, List[str]] = {}
         # DEBUG: Always show all hole cards
@@ -46,7 +75,7 @@ class GameService:
             if 0 <= i < len(pk_state.hole_cards):
                 hole_cards_for_player_i = pk_state.hole_cards[i]
                 if hole_cards_for_player_i:
-                    player_hole_cards[i] = [str(card) for card in hole_cards_for_player_i]
+                    player_hole_cards[i] = [card_to_str(card) for card in hole_cards_for_player_i]
 
         current_round_name = "PRE_FLOP"
         if pk_state.status is False:
@@ -83,6 +112,12 @@ class GameService:
                 min_raise_to_amount = pk_state.min_completion_betting_or_raising_to_amount
                 max_raise_to_amount = pk_state.max_completion_betting_or_raising_to_amount
 
+        # STRICT Payoff Logic: Only send payoffs if hand is strictly over (status=False).
+        # This prevents "Hand Over" overlay appearing during active play.
+        final_payoffs = None
+        if pk_state.status is False and pk_state.payoffs is not None:
+             final_payoffs = [int(p) for p in pk_state.payoffs]
+
         return GameStateResponse(
             game_id=game_id,
             status=pk_state.status,
@@ -94,7 +129,8 @@ class GameService:
             pot_total=pk_state.total_pot_amount,
             board_cards=current_board_cards,
             player_hole_cards=player_hole_cards,
-            payoffs=[int(p) for p in pk_state.payoffs] if pk_state.payoffs is not None else None,
+            player_names=player_names,
+            payoffs=final_payoffs,
             available_actions=available_actions,
             checking_or_calling_amount=checking_or_calling_amount,
             min_raise_to_amount=min_raise_to_amount,
@@ -108,8 +144,60 @@ class GameService:
         """
         Creates a new game instance and returns its initial state.
         Stores player identities (human/AI type).
+        Supports N players via `players` list or 2 players via legacy fields.
         """
-        player_stacks = start_game_request.initial_stacks if start_game_request.initial_stacks else [10000, 10000]
+        player_stacks = []
+        player_names = []  # Store actual player names
+        identities = {}
+        models = {}  # Store gemini_model per player index
+        
+        # 1. Determine Players and Stacks
+        if start_game_request.players and len(start_game_request.players) > 0:
+            # New Multi-Player Logic
+            for idx, p_config in enumerate(start_game_request.players):
+                # Stack: Use player specific, or global default list at idx, or 10000 fallback
+                stack = 10000
+                if p_config.stack:
+                    stack = p_config.stack
+                elif start_game_request.initial_stacks and idx < len(start_game_request.initial_stacks):
+                    stack = start_game_request.initial_stacks[idx]
+                
+                player_stacks.append(stack)
+                identities[idx] = p_config.ai_type
+                
+                # Store player name - use provided name or generate default
+                player_name = p_config.name if p_config.name else f"Player {idx + 1}"
+                player_names.append(player_name)
+                
+                # Store gemini_model if applicable
+                if p_config.gemini_model:
+                    models[idx] = p_config.gemini_model
+                
+                # Store gpt_model if applicable
+                if p_config.gpt_model:
+                    models[idx] = p_config.gpt_model
+                
+        else:
+            # Legacy 2-Player Logic
+            p1_type = start_game_request.player_one_ai_type or "dummy"
+            p2_type = start_game_request.player_two_ai_type or "dummy"
+            
+            # Handle human overrides from the old request format if needed
+            # But the request usually sends "human" as the type string if explicitly set in frontend? 
+            # Looking at previous code: 
+            # if start_game_request.human_player_index == 0: identities[0] = "human"
+            
+            # Let's just trust the string types provided, OR overrides.
+            identities[0] = p1_type
+            identities[1] = p2_type
+            
+            # Override with "human" if index matches (legacy behavior safety)
+            if start_game_request.human_player_index == 0: identities[0] = "human"
+            if start_game_request.human_player_index == 1: identities[1] = "human"
+            
+            player_stacks = start_game_request.initial_stacks if start_game_request.initial_stacks else [10000, 10000]
+            player_names = ["Player 1", "Player 2"]
+
         raw_blinds = start_game_request.blinds if start_game_request.blinds else [50, 100]
         blinds: Tuple[int, int] = (raw_blinds[0], raw_blinds[1])
 
@@ -118,21 +206,25 @@ class GameService:
         if not pk_state:
             raise Exception("Failed to create or retrieve game state immediately after creation.")
 
-        self.game_player_identities[game_id] = {}
-        if start_game_request.human_player_index == 0:
-            self.game_player_identities[game_id][0] = "human"
-        else:
-            self.game_player_identities[game_id][0] = start_game_request.player_one_ai_type or "dummy"
-        
-        if start_game_request.human_player_index == 1:
-            self.game_player_identities[game_id][1] = "human"
-        else:
-            self.game_player_identities[game_id][1] = start_game_request.player_two_ai_type or "dummy"
+        self.game_player_identities[game_id] = identities
+        self.game_player_models[game_id] = models
+        self.game_player_names[game_id] = player_names
         
         print(f"Game {game_id} player identities: {self.game_player_identities[game_id]}")
+        print(f"Game {game_id} player models: {self.game_player_models[game_id]}")
+        print(f"Game {game_id} player names: {self.game_player_names[game_id]}")
 
+        # Determine if we return a human context
+        # If human_player_index is in request, use it.
+        # Else, try to find first "human" identity?
         human_player_index = start_game_request.human_player_index
-        return self._pokerkit_state_to_api_response(game_id, pk_state, human_player_index)
+        if human_player_index is None:
+             for idx, role in identities.items():
+                 if role == "human":
+                     human_player_index = idx
+                     break
+
+        return self._pokerkit_state_to_api_response(game_id, pk_state, human_player_index, player_names)
 
     def get_game_state(self, game_id: str, human_player_index: Optional[int] = None) -> Optional[GameStateResponse]:
         """
@@ -140,7 +232,8 @@ class GameService:
         """
         pk_state = self.game_manager.get_game_state(game_id)
         if pk_state:
-            return self._pokerkit_state_to_api_response(game_id, pk_state, human_player_index)
+            names = self.game_player_names.get(game_id)
+            return self._pokerkit_state_to_api_response(game_id, pk_state, human_player_index, names)
         return None
 
     def process_human_action(
@@ -227,18 +320,21 @@ class GameService:
 
         if not pk_state.status:
             print(f"Game {game_id} is over. No AI turn to run.")
-            return self._pokerkit_state_to_api_response(game_id, pk_state)
+            names = self.game_player_names.get(game_id)
+            return self._pokerkit_state_to_api_response(game_id, pk_state, None, names)
 
         current_player_index = pk_state.actor_index
         if current_player_index is None:
-            print(f"Game {game_id} has no current actor. Hand might be over or in an unexpected state.")
-            return self._pokerkit_state_to_api_response(game_id, pk_state)
+            print(f"Game {game_id} has no current actor. Hand might be over or in an unexpected state. Street: {pk_state.street_index}")
+            names = self.game_player_names.get(game_id)
+            return self._pokerkit_state_to_api_response(game_id, pk_state, None, names)
 
         player_identities_for_game = self.game_player_identities.get(game_id)
+        player_names_for_game = self.game_player_names.get(game_id)  # Get actual player names
         if not player_identities_for_game:
             error_msg = f"Player identities not found for game {game_id}."
             print(error_msg)
-            response = self._pokerkit_state_to_api_response(game_id, pk_state)
+            response = self._pokerkit_state_to_api_response(game_id, pk_state, None, player_names_for_game)
             response.error_message = error_msg
             return response
             
@@ -246,14 +342,20 @@ class GameService:
 
         if player_name_or_type is None or player_name_or_type.lower() == "human":
             print(f"Game {game_id}: It's player {current_player_index}'s turn, who is '{player_name_or_type}'. Not an AI turn to run via this method.")
-            return self._pokerkit_state_to_api_response(game_id, pk_state)
+            return self._pokerkit_state_to_api_response(game_id, pk_state, None, player_names_for_game)
 
         print(f"Game {game_id}: AI player {current_player_index} ({player_name_or_type}) is to act.")
+        print(f"DEBUG: Valid actions: Fold={pk_state.can_fold()}, Check/Call={pk_state.can_check_or_call()}, Bet/Raise={pk_state.can_complete_bet_or_raise_to()}")
+        
         ai_action_request: Optional[PlayerActionRequest] = None
         action_taken_details = {"player_index": current_player_index}
 
+        # Get optional model for this player (e.g., specific Gemini model)
+        player_models_for_game = self.game_player_models.get(game_id, {})
+        player_model = player_models_for_game.get(current_player_index, None)
+
         try:
-            ai_player = self._get_ai_instance(player_name_or_type)
+            ai_player = self._get_ai_instance(player_name_or_type, model_name=player_model)
             ai_action_request = await ai_player.get_action(pk_state, current_player_index, game_id, player_name_or_type)
             action_taken_details["action"] = ai_action_request.action_type
             if ai_action_request.amount is not None:
@@ -265,12 +367,13 @@ class GameService:
                 if pk_state.can_fold():
                     pk_state.fold()
                 else:
-                    raise ValueError("AI requested fold when not possible.")
-            elif ai_action_request.action_type == "check_or_call":
+                    raise ValueError(f"AI requested fold when not possible. State status: {pk_state.status}")
+            elif ai_action_request.action_type == "check_or_call" or ai_action_request.action_type == "call" or ai_action_request.action_type == "check":
+                # Map 'call'/'check' to check_or_call
                 if pk_state.can_check_or_call():
                     pk_state.check_or_call()
                 else:
-                    raise ValueError("AI requested check/call when not possible.")
+                    raise ValueError(f"AI requested check/call when not possible. Amount to call: {pk_state.checking_or_calling_amount}")
             elif ai_action_request.action_type in ["raise", "bet", "complete_bet_or_raise_to"]:
                 required_amount = ai_action_request.amount
                 if required_amount is None and ai_action_request.action_type in ["raise", "bet"]:
@@ -294,7 +397,7 @@ class GameService:
                 action_taken_details["original_error"] = str(e)
             else:
                 print(f"AI could not perform original action due to error '{e}', and also cannot fold. Game state may be unchanged or hand ended.")
-                response = self._pokerkit_state_to_api_response(game_id, pk_state, None)
+                response = self._pokerkit_state_to_api_response(game_id, pk_state, None, player_names_for_game)
                 response.error_message = f"AI Error: {e}. Fallback fold also not possible."
                 response.last_action_details = None
                 return response
@@ -308,13 +411,64 @@ class GameService:
                 action_taken_details["original_error"] = str(e)
             else:
                 print(f"AI had unexpected error '{e}', and also cannot fold.")
-                response = self._pokerkit_state_to_api_response(game_id, pk_state, None)
+                response = self._pokerkit_state_to_api_response(game_id, pk_state, None, player_names_for_game)
                 response.error_message = f"AI Unexpected Error: {e}. Fallback fold also not possible."
                 response.last_action_details = None
                 return response
 
-        response = self._pokerkit_state_to_api_response(game_id, pk_state, None)
+        response = self._pokerkit_state_to_api_response(game_id, pk_state, None, player_names_for_game)
         response.last_action_details = action_taken_details
+        
+        # Check if AI had an error (rate limit, API error, etc.)
+        ai_error_message = None
+        if hasattr(ai_player, 'last_error') and ai_player.last_error:
+            ai_error_message = ai_player.last_error
+        
+        # Generate AI reasoning message for chat panel (without revealing cards)
+        ai_action = action_taken_details.get("action", "acted")
+        ai_amount = action_taken_details.get("amount")
+        round_name = response.current_round_name or "the hand"
+        pot_size = response.pot_total
+        
+        # If there was an API error, use that as the message
+        if ai_error_message:
+            response.ai_message = ai_error_message
+        else:
+            reasoning_templates = {
+                "fold": [
+                    f"🤔 Hmm, I'm not feeling confident here. Folding on {round_name}.",
+                    f"🃏 The board doesn't favor me. I'll fold and wait for a better spot.",
+                    f"⚡ I sense strength from my opponent. Folding this one.",
+                ],
+                "check": [
+                    f"👀 Interesting... I'll check and see what develops.",
+                    f"🎯 No need to bet here. Checking on {round_name}.",
+                    f"💭 Let me control the pot size. Check.",
+                ],
+                "check_or_call": [
+                    f"📞 The pot odds look good. Calling ${ai_amount or 'the bet'}.",
+                    f"🤝 I'll stay in the hand. Calling.",
+                    f"💡 Worth seeing another card. Call.",
+                ],
+                "call": [
+                    f"📞 The pot odds look good. Calling.",
+                    f"🤝 I'll stay in the hand. Calling ${ai_amount or ''}.",
+                    f"💡 Worth seeing more. Call.",
+                ],
+                "raise": [
+                    f"🔥 Time to apply pressure! Raising to ${ai_amount}.",
+                    f"💪 I'm feeling good about this. Raise to ${ai_amount}.",
+                    f"🚀 Let's build this pot! Raising to ${ai_amount}.",
+                ],
+                "bet": [
+                    f"🎲 Taking the initiative. Betting ${ai_amount}.",
+                    f"⚡ Time to put chips in. Bet ${ai_amount}.",
+                ]
+            }
+            
+            import random
+            templates = reasoning_templates.get(ai_action, [f"🤖 {ai_action.capitalize()}ing..."])
+            response.ai_message = random.choice(templates)
         
         # Log betting round status
         if pk_state:
@@ -323,3 +477,70 @@ class GameService:
 
         print(f"Game {game_id}: AI turn processed. Final actor_index for this call: {pk_state.actor_index}, Status: {pk_state.status}")
         return response
+
+    def start_next_hand(self, game_id: str) -> GameStateResponse:
+        """
+        Starts the next hand for an existing game.
+        Preserves chip stacks, rotates the dealer button, and deals new cards.
+        """
+        pk_state = self.game_manager.get_game_state(game_id)
+        if not pk_state:
+            raise ValueError("Game not found.")
+            
+        if pk_state.status:
+            raise ValueError("Current hand is still active. Finish the hand before starting a new one.")
+            
+        # 1. Retrieve final stacks from the finished hand
+        # We need to ensure we get the 'payoffs' added to stacks if not already done by PokerKit state
+        # Usually pk_state.stacks reflects the final stacks after payoffs if the hand is done.
+        current_stacks = [int(s) for s in pk_state.stacks]
+        
+        # Check if anyone is busted (0 chips)
+        # For phase 2 simple version: If human is busted, maybe error? Or let them play with 0? (Impossible)
+        # If AI is busted, we should probably rebuy them or end? 
+        # For now: Just proceed. If stack is 0, PokerKit might error or they are effectively out.
+        if any(s <= 0 for s in current_stacks):
+             # Simple "Rebuy" logic for prototype: If 0, give 1000 so game doesn't crash? 
+             # No, user wants "until player runs out of money". 
+             # If human runs out, game over.
+             pass
+
+        # 2. Determine new button index
+        # Default rotation
+        player_count = getattr(pk_state, 'player_count', 2)
+        old_button = getattr(pk_state, 'button_index', 0)
+        new_button = (old_button + 1) % player_count
+        
+        # 3. Get Blinds (Assume constant for now)
+        # We don't store blinds in manager explicitly, need to extract or default.
+        # pk_state.blinds_or_straddles exists?
+        blinds = [50, 100] # Default fallback
+        if hasattr(pk_state, 'blinds_or_straddles') and len(pk_state.blinds_or_straddles) >= 2:
+            blinds = [int(b) for b in pk_state.blinds_or_straddles[:2]]
+            
+        # 4. Create New Hand (Overwriting the game_id state)
+        # This effectively "Resets" the state object but keeps the ID
+        self.game_manager.create_game(
+            player_stacks=current_stacks,
+            blinds_tuple=tuple(blinds),
+            game_id_override=game_id,
+            button_index=new_button
+        )
+        
+        print(f"Game {game_id}: Started next hand. Button moved from {old_button} to {new_button}. Stacks: {current_stacks}")
+        
+        # 5. Return new state
+        return self.get_game_state(game_id, None) # Human index not needed for general state return, or we need to look it up?
+        # Ideally we should pass the human index if we want hole cards hidden correctly? 
+        # But for 'start' response, usually we want to see our cards.
+        # We can look up the human index from identities.
+        
+        # Lookup human index
+        human_idx = 0 # Default
+        identities = self.game_player_identities.get(game_id, {})
+        for idx, role in identities.items():
+            if role == "human":
+                human_idx = idx
+                break
+                
+        return self.get_game_state(game_id, human_idx)

@@ -119,3 +119,20 @@ async def advance_ai_turn(
         # Log the exception e for debugging
         print(f"Unhandled exception in /advance_ai_turn for game {game_id}: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to advance AI turn: {str(e)}")
+@router.post("/{game_id}/next_hand", response_model=GameStateResponse)
+async def start_next_hand(
+    game_id: str,
+    game_service: GameService = Depends(get_game_service)
+):
+    """
+    Starts the next hand for an existing game.
+    Invokes `game_service.start_next_hand`.
+    """
+    try:
+        game_state = game_service.start_next_hand(game_id)
+        return game_state
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        print(f"Unhandled exception in /next_hand for game {game_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to start next hand: {str(e)}")

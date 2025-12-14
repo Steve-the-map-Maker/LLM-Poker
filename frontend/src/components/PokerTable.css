@@ -1,0 +1,254 @@
+/* PokerTable.css */
+
+.poker-table-container {
+    position: relative;
+    width: 100%;
+    max-width: 1000px;
+    height: 600px;
+    /* Fixed height for consistent positioning */
+    margin: 0 auto;
+    background-color: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    /* Prevent spillover */
+}
+
+/* The actual felt table */
+.poker-felt {
+    position: relative;
+    width: 80%;
+    height: 70%;
+    background: radial-gradient(ellipse at center, var(--table-felt) 0%, #032d12 100%);
+    border: 15px solid var(--table-border);
+    border-radius: 200px;
+    /* Oval shape */
+    box-shadow:
+        inset 0 0 40px rgba(0, 0, 0, 0.8),
+        /* Inner shadow depth */
+        0 10px 30px rgba(0, 0, 0, 0.5);
+    /* Drop shadow */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.community-cards-area {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    min-height: 90px;
+}
+
+.table-center-info {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.9);
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
+    padding: 12px 24px;
+    border-radius: 30px;
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.table-center-info h4 {
+    margin: 0;
+    font-size: 1.4em;
+    color: #ffd700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.table-center-info h4::before {
+    content: '';
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 50%, #a93226 100%);
+    border: 2px solid #fff;
+    border-radius: 50%;
+    box-shadow:
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.3),
+        0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.table-center-info div {
+    font-size: 0.8em;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.card-placeholder {
+    width: 60px;
+    height: 84px;
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    margin: 2px;
+}
+
+/* Player Positioning Container (Invisible layer on top of table) */
+.seats-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    /* Let clicks pass through to table if needed */
+}
+
+.seat {
+    position: absolute;
+    pointer-events: auto;
+    /* Centered on its coordinate */
+    transform: translate(-50%, -50%);
+    width: 140px;
+    text-align: center;
+}
+
+/* Specific Seat Positions (Percentage based for responsiveness) */
+/* Assuming 6 max */
+.seat-0 {
+    top: 85%;
+    left: 50%;
+}
+
+/* Hero (Bottom Center) */
+.seat-1 {
+    top: 60%;
+    left: 15%;
+}
+
+/* Bottom Left */
+.seat-2 {
+    top: 25%;
+    left: 15%;
+}
+
+/* Top Left */
+.seat-3 {
+    top: 15%;
+    left: 50%;
+}
+
+/* Top Center */
+.seat-4 {
+    top: 25%;
+    left: 85%;
+}
+
+/* Top Right */
+.seat-5 {
+    top: 60%;
+    left: 85%;
+}
+
+/* Bottom Right */
+
+/* Message Overlay */
+.hand-result-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -150%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: var(--accent-gold);
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: 1px solid var(--accent-gold);
+    z-index: 100;
+    animation: fadeIn 0.5s;
+    font-weight: bold;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* AI Thinking Indicator */
+.ai-thinking-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(59, 130, 246, 0.2));
+    border-radius: 20px;
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.thinking-dots {
+    display: flex;
+    gap: 4px;
+}
+
+.thinking-dots span {
+    width: 8px;
+    height: 8px;
+    background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+    border-radius: 50%;
+    animation: bounce 1.4s ease-in-out infinite;
+}
+
+.thinking-dots span:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.thinking-dots span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.thinking-dots span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+.thinking-text {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.85em;
+    font-weight: 500;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes bounce {
+
+    0%,
+    80%,
+    100% {
+        transform: translateY(0);
+        opacity: 0.6;
+    }
+
+    40% {
+        transform: translateY(-6px);
+        opacity: 1;
+    }
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 5px rgba(139, 92, 246, 0.3);
+    }
+
+    50% {
+        box-shadow: 0 0 15px rgba(139, 92, 246, 0.6);
+    }
+}

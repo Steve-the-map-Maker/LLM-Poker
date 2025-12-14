@@ -1,24 +1,27 @@
 import axios from 'axios';
-import { GameStateResponse, StartGameRequest, PlayerActionRequest } from '../types/gameTypes';
+import { GameStateResponse, StartGameRequest, PlayerActionRequest, PlayerConfig } from '../types/gameTypes';
 
-const API_BASE_URL = "http://localhost:8000/api/v1/game";
+// API URL - change this for production deployment
+// API URL - configurable for production
+const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000/api/v1/game";
 
-export const startGameApi = async (player1Type: string, player2Type: string): Promise<GameStateResponse> => {
-    console.log("startGameApi called with:", player1Type, player2Type);
-    
+export const startGameApi = async (players: PlayerConfig[], blinds?: number[]): Promise<GameStateResponse> => {
+    console.log("startGameApi called with players:", players, "blinds:", blinds);
+
+    // Find human index
     let human_player_index: number | null = null;
-    if (player1Type.toLowerCase() === 'human') {
-        human_player_index = 0;
-    } else if (player2Type.toLowerCase() === 'human') {
-        human_player_index = 1;
-    }
+    players.forEach((p, index) => {
+        if (p.ai_type === 'human') {
+            human_player_index = index;
+        }
+    });
 
     const payload: StartGameRequest = {
-        player_one_ai_type: player1Type.toLowerCase() === 'human' ? 'human_placeholder' : player1Type,
-        player_two_ai_type: player2Type.toLowerCase() === 'human' ? 'human_placeholder' : player2Type,
+        players: players,
         human_player_index: human_player_index,
-        // initial_stacks and blinds will use backend defaults
+        blinds: blinds // Add blinds to payload
     };
+
     try {
         const response = await axios.post(`${API_BASE_URL}/start`, payload);
         console.log("startGameApi response:", response.data);
@@ -78,5 +81,21 @@ export const playerActionApi = async (gameId: string, actionRequest: PlayerActio
             throw new Error(error.response.data.detail || "Failed to submit player action");
         }
         throw new Error("Failed to submit player action due to an unexpected error.");
+    }
+};
+
+export const startNextHandApi = async (gameId: string): Promise<GameStateResponse> => {
+    console.log("startNextHandApi called with gameId:", gameId);
+    try {
+        const response = await axios.post(`${API_BASE_URL}/${gameId}/next_hand`);
+        console.log("startNextHandApi response:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error(`Error starting next hand for gameId ${gameId}:`, error);
+        if (axios.isAxiosError(error) && error.response) {
+            console.error("Error response data:", error.response.data);
+            throw new Error(error.response.data.detail || "Failed to start next hand");
+        }
+        throw new Error("Failed to start next hand due to an unexpected error.");
     }
 };
