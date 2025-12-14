@@ -205,3 +205,224 @@ button:disabled {
 .game-controls button {
   margin: 0 10px;
 }
+
+/* ========================================
+   MOBILE RESPONSIVE STYLES
+   ======================================== */
+
+/* Tablet and smaller screens */
+@media screen and (max-width: 1024px) {
+  .game-container {
+    flex-direction: column;
+    height: auto;
+    min-height: calc(100vh - 100px);
+  }
+
+  .game-area {
+    width: 100%;
+    padding-bottom: 20px;
+  }
+}
+
+/* Mobile phones */
+@media screen and (max-width: 768px) {
+  .App-header {
+    padding: 15px;
+    margin-bottom: 15px;
+  }
+
+  .App-header h1 {
+    font-size: 1.6em;
+  }
+
+  main {
+    padding: 0 10px;
+  }
+
+  .game-container {
+    flex-direction: column;
+    gap: 15px;
+    height: auto;
+    min-height: auto;
+    padding-bottom: 20px;
+  }
+
+  .game-area {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* Larger touch targets for buttons */
+  div>button,
+  button {
+    padding: 14px 20px;
+    font-size: 1em;
+    min-height: 48px;
+    margin: 4px;
+  }
+
+  /* Form inputs touch-friendly */
+  div>div>select,
+  input[type="number"] {
+    padding: 12px;
+    font-size: 16px;
+    /* Prevents iOS zoom on focus */
+    min-height: 44px;
+  }
+
+  .error-message {
+    font-size: 0.9em;
+    padding: 8px;
+    margin-bottom: 10px;
+  }
+
+  .loading-message {
+    font-size: 1em;
+  }
+
+  /* Game controls layout for mobile */
+  .game-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-top: 15px;
+    padding: 15px;
+  }
+
+  .game-controls button {
+    margin: 5px 0;
+    width: 100%;
+    max-width: 280px;
+  }
+}
+
+/* Small mobile phones */
+@media screen and (max-width: 480px) {
+  .App-header h1 {
+    font-size: 1.3em;
+  }
+
+  main {
+    padding: 0 8px;
+  }
+
+  div>button,
+  button {
+    padding: 12px 16px;
+    font-size: 0.95em;
+  }
+}
+
+/* Action Controls Mobile Styles */
+.action-controls {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 15px;
+  box-sizing: border-box;
+}
+
+@media screen and (max-width: 768px) {
+  .action-controls {
+    padding: 10px;
+  }
+
+  .action-controls h4 {
+    font-size: 1em;
+    margin-bottom: 10px;
+  }
+
+  .action-controls>div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .action-controls button {
+    flex: 1;
+    min-width: 80px;
+    max-width: 150px;
+  }
+
+  .action-controls input[type="number"] {
+    width: 100%;
+    max-width: 150px;
+    margin-bottom: 10px;
+  }
+
+  .action-controls input[type="range"] {
+    width: 100% !important;
+    max-width: 200px;
+    margin: 10px 0 !important;
+  }
+
+  .action-controls small {
+    display: block;
+    text-align: center;
+    margin-top: 8px;
+    font-size: 0.8em;
+  }
+}
+
+/* Selector Container Mobile Styles */
+.selector-container {
+  max-width: 100%;
+  padding: 15px;
+  box-sizing: border-box;
+}
+
+@media screen and (max-width: 768px) {
+  .selector-container h2 {
+    font-size: 1.5em;
+  }
+
+  .selector-container h3 {
+    font-size: 1.2em;
+  }
+
+  .game-settings {
+    padding: 10px !important;
+  }
+
+  .game-settings>div {
+    flex-direction: column !important;
+    gap: 15px !important;
+  }
+
+  .player-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    margin: 8px 0 !important;
+  }
+
+  .player-row span {
+    text-align: center;
+    min-width: auto !important;
+  }
+
+  .player-row select {
+    width: 100%;
+    padding: 12px !important;
+    margin-right: 0 !important;
+  }
+
+  .player-row button {
+    width: 100%;
+  }
+
+  .controls {
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+
+  .controls button {
+    width: 100%;
+    max-width: 280px;
+  }
+}

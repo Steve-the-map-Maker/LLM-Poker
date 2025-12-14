@@ -252,3 +252,202 @@
         box-shadow: 0 0 15px rgba(139, 92, 246, 0.6);
     }
 }
+
+/* ========================================
+   POKER TABLE MOBILE RESPONSIVE STYLES
+   ======================================== */
+
+/* Tablet screens */
+@media screen and (max-width: 1024px) {
+    .poker-table-container {
+        height: 500px;
+        max-width: 100%;
+    }
+
+    .poker-felt {
+        width: 85%;
+        height: 65%;
+        border-width: 12px;
+        border-radius: 150px;
+    }
+
+    .seat {
+        width: 120px;
+    }
+
+    .community-cards-area {
+        gap: 8px;
+    }
+
+    .table-center-info {
+        padding: 10px 18px;
+    }
+
+    .table-center-info h4 {
+        font-size: 1.2em;
+    }
+}
+
+/* Mobile phones */
+@media screen and (max-width: 768px) {
+    .poker-table-container {
+        height: 400px;
+        max-width: 100%;
+        padding: 10px;
+        box-sizing: border-box;
+    }
+
+    .poker-felt {
+        width: 95%;
+        height: 60%;
+        border-width: 8px;
+        border-radius: 100px;
+        padding: 10px;
+    }
+
+    .community-cards-area {
+        gap: 4px;
+        margin-bottom: 10px;
+        min-height: 70px;
+    }
+
+    .card-placeholder {
+        width: 45px;
+        height: 63px;
+    }
+
+    .table-center-info {
+        padding: 8px 14px;
+        border-radius: 20px;
+    }
+
+    .table-center-info h4 {
+        font-size: 1em;
+        gap: 6px;
+    }
+
+    .table-center-info h4::before {
+        width: 18px;
+        height: 18px;
+    }
+
+    .table-center-info div {
+        font-size: 0.7em;
+    }
+
+    /* Seat adjustments for mobile - tighter positioning */
+    .seat {
+        width: 90px;
+    }
+
+    .seat-0 {
+        top: 88%;
+        left: 50%;
+    }
+
+    .seat-1 {
+        top: 65%;
+        left: 12%;
+    }
+
+    .seat-2 {
+        top: 22%;
+        left: 12%;
+    }
+
+    .seat-3 {
+        top: 8%;
+        left: 50%;
+    }
+
+    .seat-4 {
+        top: 22%;
+        left: 88%;
+    }
+
+    .seat-5 {
+        top: 65%;
+        left: 88%;
+    }
+
+    .hand-result-overlay {
+        padding: 8px 14px;
+        font-size: 0.9em;
+        border-radius: 8px;
+    }
+
+    .ai-thinking-indicator {
+        padding: 6px 12px;
+        border-radius: 15px;
+        margin-top: 5px;
+    }
+
+    .thinking-dots span {
+        width: 6px;
+        height: 6px;
+    }
+
+    .thinking-text {
+        font-size: 0.75em;
+    }
+}
+
+/* Small mobile phones */
+@media screen and (max-width: 480px) {
+    .poker-table-container {
+        height: 350px;
+    }
+
+    .poker-felt {
+        width: 98%;
+        height: 55%;
+        border-width: 6px;
+        border-radius: 80px;
+    }
+
+    .community-cards-area {
+        gap: 2px;
+        min-height: 60px;
+    }
+
+    .table-center-info {
+        padding: 6px 10px;
+    }
+
+    .table-center-info h4 {
+        font-size: 0.9em;
+    }
+
+    .seat {
+        width: 75px;
+    }
+
+    /* Tighter seat positions for very small screens */
+    .seat-0 {
+        top: 90%;
+    }
+
+    .seat-1 {
+        top: 68%;
+        left: 8%;
+    }
+
+    .seat-2 {
+        top: 20%;
+        left: 8%;
+    }
+
+    .seat-3 {
+        top: 5%;
+    }
+
+    .seat-4 {
+        top: 20%;
+        left: 92%;
+    }
+
+    .seat-5 {
+        top: 68%;
+        left: 92%;
+    }
+}

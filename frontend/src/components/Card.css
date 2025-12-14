@@ -100,3 +100,66 @@
 }
 
 /* Small visual tweaks for specific ranks/suits could go here */
+
+/* ========================================
+   CARD MOBILE RESPONSIVE STYLES
+   ======================================== */
+
+@media screen and (max-width: 768px) {
+  .poker-card {
+    width: 45px;
+    height: 63px;
+    padding: 3px;
+    border-radius: 5px;
+  }
+
+  .rank-text {
+    font-size: 13px;
+    margin-bottom: 1px;
+  }
+
+  .suit-icon {
+    font-size: 10px;
+    height: 10px;
+  }
+
+  .card-center-suit {
+    font-size: 26px;
+  }
+
+  .card-top-left,
+  .card-bottom-right {
+    top: 2px;
+    left: 2px;
+  }
+
+  .card-bottom-right {
+    bottom: 2px;
+    right: 2px;
+    top: auto;
+    left: auto;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .poker-card {
+    width: 38px;
+    height: 53px;
+    padding: 2px;
+    border-radius: 4px;
+    margin: 1px;
+  }
+
+  .rank-text {
+    font-size: 11px;
+  }
+
+  .suit-icon {
+    font-size: 8px;
+    height: 8px;
+  }
+
+  .card-center-suit {
+    font-size: 20px;
+  }
+}

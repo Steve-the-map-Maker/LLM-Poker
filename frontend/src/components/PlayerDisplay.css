@@ -212,3 +212,132 @@
         transform: translateY(-50%) scale(1);
     }
 }
+
+/* ========================================
+   PLAYER DISPLAY MOBILE RESPONSIVE STYLES
+   ======================================== */
+
+@media screen and (max-width: 768px) {
+    .player-avatar {
+        width: 45px;
+        height: 45px;
+        border-width: 2px;
+        margin-bottom: 3px;
+    }
+
+    .avatar-initial {
+        font-size: 18px;
+    }
+
+    .dealer-button {
+        width: 16px;
+        height: 16px;
+        font-size: 10px;
+        bottom: -3px;
+        right: -3px;
+    }
+
+    .player-info {
+        padding: 3px 6px;
+        min-width: 60px;
+    }
+
+    .player-name {
+        font-size: 0.75em;
+        max-width: 70px;
+    }
+
+    .player-stack {
+        font-size: 0.7em;
+    }
+
+    .player-cards {
+        top: -32px;
+    }
+
+    .player-cards .poker-card {
+        margin: 0 -10px;
+    }
+
+    .player-bet {
+        padding: 4px 10px;
+        font-size: 0.8em;
+        margin-top: 5px;
+        border-radius: 15px;
+    }
+
+    .chip-icon {
+        width: 16px;
+        height: 16px;
+    }
+
+    .chip-icon::after {
+        font-size: 8px;
+    }
+
+    .last-action-bubble {
+        padding: 3px 6px;
+        font-size: 0.7em;
+        margin-left: 6px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .player-avatar {
+        width: 36px;
+        height: 36px;
+    }
+
+    .avatar-initial {
+        font-size: 14px;
+    }
+
+    .dealer-button {
+        width: 14px;
+        height: 14px;
+        font-size: 8px;
+    }
+
+    .player-info {
+        padding: 2px 4px;
+        min-width: 50px;
+    }
+
+    .player-name {
+        font-size: 0.65em;
+        max-width: 55px;
+    }
+
+    .player-stack {
+        font-size: 0.6em;
+    }
+
+    .player-cards {
+        top: -28px;
+    }
+
+    .player-cards .poker-card {
+        margin: 0 -12px;
+    }
+
+    .player-bet {
+        padding: 3px 8px;
+        font-size: 0.7em;
+        gap: 5px;
+    }
+
+    .chip-icon {
+        width: 14px;
+        height: 14px;
+    }
+
+    .last-action-bubble {
+        /* On very small screens, position below instead of beside */
+        position: relative;
+        left: 0;
+        top: 3px;
+        margin-left: 0;
+        transform: none;
+        display: inline-block;
+    }
+}
