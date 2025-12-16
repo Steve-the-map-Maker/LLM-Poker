@@ -25,9 +25,8 @@ const LLMSelector: React.FC<LLMSelectorProps> = ({ onStartGame, isLoading }) => 
         "gemini-2.0-flash",
         "gemini-2.0-flash-exp",
         "gemini-2.0-flash-lite",
-        // Experimental & Special
-        "gemini-exp-1206",
-        "deep-research-pro-preview-12-2025"
+        // Experimental
+        "gemini-exp-1206"
     ];
     const gptModelOptions = [
         "gpt-3.5-turbo"
