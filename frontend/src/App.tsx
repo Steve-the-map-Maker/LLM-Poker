@@ -139,6 +139,53 @@ const App: React.FC = () => {
         setError(null);
         setHumanPlayerIndex(null);
         setAutoPlay(false);
+        setChatMessages([]);
+    };
+
+    const handleSendChatMessage = async (message: string) => {
+        if (!gameId || !gameState) return;
+
+        // Add human message to chat
+        const humanMessage: ChatMessage = {
+            id: messageId,
+            sender: 'You',
+            message: message,
+            timestamp: new Date(),
+            type: 'human'
+        };
+        setChatMessages(prev => [...prev, humanMessage]);
+        setMessageId(prev => prev + 1);
+
+        // TODO: Call backend API to send message and get AI responses
+        // For now, we'll simulate AI responses locally
+        // In production, this would call an endpoint like /api/v1/game/{gameId}/chat
+
+        // Simulate AI response after a short delay
+        setTimeout(() => {
+            const aiPlayerIndex = Math.floor(Math.random() * (gameState.stacks?.length || 2));
+            const aiNames = ['GeminiPro', 'StarDust', 'CosmicAce', 'NebulaKing', 'AstroBluffer', 'DumbBot'];
+            const aiName = aiNames[aiPlayerIndex] || `AI ${aiPlayerIndex + 1}`;
+
+            const responses = [
+                "Bring it on! 🎯",
+                "Talk is cheap, chips are what matter 💰",
+                "Your trash talk won't save you from my calculations 🤖",
+                "I've analyzed 10,000 hands. You've got nothing 📊",
+                "Nice try, but I don't tilt 😎",
+                "All in on confidence, fold on skill? 🃏",
+                "Keep talking while I take your chips 💸"
+            ];
+
+            const aiResponse: ChatMessage = {
+                id: messageId + 1,
+                sender: aiName,
+                message: responses[Math.floor(Math.random() * responses.length)],
+                timestamp: new Date(),
+                type: 'ai'
+            };
+            setChatMessages(prev => [...prev, aiResponse]);
+            setMessageId(prev => prev + 2);
+        }, 1000 + Math.random() * 2000); // Random delay 1-3 seconds
     };
 
     const isHumanTurn = gameState?.status === true && gameState.actor_index === humanPlayerIndex && humanPlayerIndex !== null;
@@ -208,6 +255,32 @@ const App: React.FC = () => {
                                 humanPlayerIndex={humanPlayerIndex}
                                 isAiThinking={isLoading && gameState?.status === true && gameState?.actor_index !== humanPlayerIndex}
                             />
+
+                            {/* Game Over Overlay */}
+                            {gameState && gameState.error_message && (gameState.error_message.startsWith('🏆') || gameState.error_message.startsWith('🎲')) && (
+                                <div className="game-over-overlay">
+                                    <div className="game-over-modal">
+                                        <div className="game-over-emoji">
+                                            {gameState.error_message.includes('CONGRATULATIONS') ? '🎉' : '🏆'}
+                                        </div>
+                                        <h2 className="game-over-title">
+                                            {gameState.error_message.includes('CONGRATULATIONS') ? 'YOU WON!' : 'GAME OVER'}
+                                        </h2>
+                                        <p className="game-over-message">
+                                            {gameState.error_message.replace('🏆 CONGRATULATIONS! ', '').replace('🏆 GAME OVER! ', '')}
+                                        </p>
+                                        <div className="game-over-buttons">
+                                            <button
+                                                onClick={handleResetGame}
+                                                className="game-over-btn new-game-btn"
+                                            >
+                                                🎮 New Game
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             {isHumanTurn && gameState && (
                                 <ActionControls
                                     gameId={gameId}
@@ -235,7 +308,11 @@ const App: React.FC = () => {
                                 onToggleAutoPlay={() => setAutoPlay(!autoPlay)}
                             />
                         </div>
-                        <ChatPanel messages={chatMessages} />
+                        <ChatPanel
+                            messages={chatMessages}
+                            gameId={gameId}
+                            onSendMessage={handleSendChatMessage}
+                        />
                     </div>
                 )}
             </main>

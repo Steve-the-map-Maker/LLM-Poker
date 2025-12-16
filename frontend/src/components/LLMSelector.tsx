@@ -9,25 +9,45 @@ interface LLMSelectorProps {
 const LLMSelector: React.FC<LLMSelectorProps> = ({ onStartGame, isLoading }) => {
     // Defines the AI type for each player seat
     const [playerTypes, setPlayerTypes] = useState<string[]>(["dummy", "dummy"]);
-    const [geminiModels, setGeminiModels] = useState<string[]>(["gemini-2.5-flash-lite", "gemini-2.5-flash-lite"]); // Default model per player
+    const [geminiModels, setGeminiModels] = useState<string[]>(["gemini-2.5-flash", "gemini-2.5-flash"]); // Default: stable 2.5 for production
     const [stackSize, setStackSize] = useState<number>(10000);
     const [bigBlind, setBigBlind] = useState<number>(100);
 
     const playerOptions = ["human", "dummy", "gemini"]; // GPT temporarily disabled
     const geminiModelOptions = [
+        // Gemini 3.0 (Newest!)
+        "gemini-3-pro-preview",
+        // Gemini 2.5 (Latest stable)
+        "gemini-2.5-pro",
+        "gemini-2.5-flash",
         "gemini-2.5-flash-lite",
-        "gemini-2.5-flash"
+        // Gemini 2.0 Flash variants
+        "gemini-2.0-flash",
+        "gemini-2.0-flash-exp",
+        "gemini-2.0-flash-lite",
+        // Experimental & Special
+        "gemini-exp-1206",
+        "deep-research-pro-preview-12-2025"
     ];
     const gptModelOptions = [
         "gpt-3.5-turbo"
     ];
     const [gptModels, setGptModels] = useState<string[]>(["gpt-3.5-turbo", "gpt-3.5-turbo"]);
 
+    // Custom AI prompts for each player
+    const DEFAULT_AI_PROMPT = `Style: Aggressive and confident
+Trash talk: Taunt opponents when you bluff successfully
+Strategy: Mix up your play, occasionally slow-play strong hands`;
+    const [customPrompts, setCustomPrompts] = useState<string[]>([DEFAULT_AI_PROMPT, DEFAULT_AI_PROMPT]);
+    const [showAdvanced, setShowAdvanced] = useState<boolean[]>([false, false]);
+
     const handleAddPlayer = () => {
         if (playerTypes.length < 6) {
             setPlayerTypes([...playerTypes, "dummy"]);
-            setGeminiModels([...geminiModels, "gemini-2.5-flash-lite"]);
+            setGeminiModels([...geminiModels, "gemini-2.5-flash"]);  // Stable 2.5 for production
             setGptModels([...gptModels, "gpt-3.5-turbo"]);
+            setCustomPrompts([...customPrompts, DEFAULT_AI_PROMPT]);
+            setShowAdvanced([...showAdvanced, false]);
         }
     };
 
@@ -44,6 +64,14 @@ const LLMSelector: React.FC<LLMSelectorProps> = ({ onStartGame, isLoading }) => 
             const newGptModels = [...gptModels];
             newGptModels.splice(index, 1);
             setGptModels(newGptModels);
+
+            const newPrompts = [...customPrompts];
+            newPrompts.splice(index, 1);
+            setCustomPrompts(newPrompts);
+
+            const newShowAdvanced = [...showAdvanced];
+            newShowAdvanced.splice(index, 1);
+            setShowAdvanced(newShowAdvanced);
         }
     };
 
@@ -81,6 +109,18 @@ const LLMSelector: React.FC<LLMSelectorProps> = ({ onStartGame, isLoading }) => 
         return names[index % names.length];
     };
 
+    const handleCustomPromptChange = (index: number, newPrompt: string) => {
+        const newPrompts = [...customPrompts];
+        newPrompts[index] = newPrompt;
+        setCustomPrompts(newPrompts);
+    };
+
+    const toggleAdvanced = (index: number) => {
+        const newShowAdvanced = [...showAdvanced];
+        newShowAdvanced[index] = !newShowAdvanced[index];
+        setShowAdvanced(newShowAdvanced);
+    };
+
     const handleStart = () => {
         // Convert strings to PlayerConfig objects with the chosen stack
         const playersConfig: PlayerConfig[] = playerTypes.map((type, index) => ({
@@ -88,7 +128,8 @@ const LLMSelector: React.FC<LLMSelectorProps> = ({ onStartGame, isLoading }) => 
             ai_type: type,
             stack: stackSize,
             gemini_model: type === 'gemini' ? geminiModels[index] : undefined,
-            gpt_model: type === 'gpt' ? gptModels[index] : undefined
+            gpt_model: type === 'gpt' ? gptModels[index] : undefined,
+            custom_prompt: (type === 'gemini' || type === 'gpt') ? customPrompts[index] : undefined
         }));
 
         const blinds = [Math.floor(bigBlind / 2), bigBlind];
@@ -176,6 +217,55 @@ const LLMSelector: React.FC<LLMSelectorProps> = ({ onStartGame, isLoading }) => 
                             >
                                 Remove
                             </button>
+                        )}
+                        {(type === 'gemini' || type === 'gpt') && (
+                            <button
+                                onClick={() => toggleAdvanced(index)}
+                                style={{
+                                    background: showAdvanced[index] ? '#666' : '#555',
+                                    padding: '5px 10px',
+                                    fontSize: '0.8em',
+                                    border: '1px solid #777'
+                                }}
+                            >
+                                {showAdvanced[index] ? '▲ Hide' : '⚙️ Customize AI'}
+                            </button>
+                        )}
+                        {showAdvanced[index] && (type === 'gemini' || type === 'gpt') && (
+                            <div style={{
+                                width: '100%',
+                                marginTop: '10px',
+                                padding: '10px',
+                                background: 'rgba(255,255,255,0.05)',
+                                borderRadius: '8px',
+                                border: '1px solid #444'
+                            }}>
+                                <label style={{ fontSize: '0.85em', display: 'block', marginBottom: '5px', color: '#aaa' }}>
+                                    AI Personality & Strategy:
+                                </label>
+                                <textarea
+                                    value={customPrompts[index]}
+                                    onChange={(e) => handleCustomPromptChange(index, e.target.value)}
+                                    disabled={isLoading}
+                                    maxLength={500}
+                                    rows={4}
+                                    style={{
+                                        width: '100%',
+                                        padding: '8px',
+                                        borderRadius: '4px',
+                                        border: '1px solid #555',
+                                        background: '#222',
+                                        color: '#ddd',
+                                        fontSize: '0.9em',
+                                        resize: 'vertical',
+                                        boxSizing: 'border-box'
+                                    }}
+                                    placeholder="Describe the AI's personality, playing style, and trash talk..."
+                                />
+                                <span style={{ fontSize: '0.75em', color: '#666' }}>
+                                    {customPrompts[index].length}/500 characters
+                                </span>
+                            </div>
                         )}
                     </div>
                 ))}

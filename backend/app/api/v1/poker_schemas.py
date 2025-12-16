@@ -13,6 +13,7 @@ class PlayerConfig(BaseModel):
     stack: Optional[int] = Field(None, ge=100, le=10000000)  # Stack between 100 and 10M
     gemini_model: Optional[str] = Field(None, max_length=100)
     gpt_model: Optional[str] = Field(None, max_length=100)
+    custom_prompt: Optional[str] = Field(None, max_length=500)  # Custom AI personality/strategy
     
     @field_validator('name')
     @classmethod

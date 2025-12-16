@@ -84,9 +84,11 @@ async def player_action(
         updated_game_state = game_service.process_human_action(game_id, action_request, human_player_index)
         
         if updated_game_state.error_message:
-            # The service layer might return a state with an error message for invalid actions
-            # Re-raise as HTTPException to ensure proper client response
-            raise HTTPException(status_code=400, detail=updated_game_state.error_message)
+            # Only treat as error if it's NOT a game over message
+            is_game_over_message = updated_game_state.error_message.startswith("🏆") or updated_game_state.error_message.startswith("🎲")
+            if not is_game_over_message:
+                # The service layer might return a state with an error message for invalid actions
+                raise HTTPException(status_code=400, detail=updated_game_state.error_message)
         return updated_game_state
     except ValueError as e:
         # Catch specific ValueErrors from service layer if not already in response model
@@ -108,10 +110,13 @@ async def advance_ai_turn(
     try:
         # The service method is now async
         game_state = await game_service.run_ai_vs_ai_game_turn(game_id)
+        # Only treat as error if it's NOT a game over message
+        # Game over messages start with 🏆 or 🎲 and are normal end states
         if game_state.error_message:
-             # Handle errors returned in the GameStateResponse from the service layer
-             # These could be due to AI errors, invalid game state, etc.
-             raise HTTPException(status_code=400, detail=game_state.error_message)
+            is_game_over_message = game_state.error_message.startswith("🏆") or game_state.error_message.startswith("🎲")
+            if not is_game_over_message:
+                # This is an actual error, not a game over
+                raise HTTPException(status_code=400, detail=game_state.error_message)
         return game_state
     except ValueError as e: # Catch specific ValueErrors if service raises them directly
         raise HTTPException(status_code=400, detail=str(e))

@@ -19,21 +19,22 @@ class GameService:
         self.game_player_identities: Dict[str, Dict[int, str]] = {}  # Stores AI type or "human" for each player_index in a game
         self.game_player_models: Dict[str, Dict[int, str]] = {}  # Stores model name (e.g., gemini model) per player per game
         self.game_player_names: Dict[str, List[str]] = {}  # Stores actual player names per game
+        self.game_player_custom_prompts: Dict[str, Dict[int, str]] = {}  # Stores custom AI prompts per player per game
         self.ai_constructors: Dict[str, type[AIPlayer]] = {
             "dummy": DummyAI,
             "gpt": GPTAI,
             "gemini": GeminiAI
         }
 
-    def _get_ai_instance(self, ai_type: str, model_name: str = None) -> AIPlayer:
+    def _get_ai_instance(self, ai_type: str, model_name: str = None, custom_prompt: str = None) -> AIPlayer:
         """Helper method to instantiate an AI player based on its type."""
         constructor = self.ai_constructors.get(ai_type.lower())
         if not constructor:
             raise ValueError(f"Unknown AI type: {ai_type}")
         
-        # For Gemini, pass the model name if provided
-        if ai_type.lower() == "gemini" and model_name:
-            return constructor(model_name=model_name)
+        # For Gemini, pass the model name and custom prompt if provided
+        if ai_type.lower() == "gemini":
+            return constructor(model_name=model_name, custom_prompt=custom_prompt)
         
         # For GPT, pass the model name if provided
         if ai_type.lower() == "gpt" and model_name:
@@ -118,24 +119,50 @@ class GameService:
         if pk_state.status is False and pk_state.payoffs is not None:
              final_payoffs = [int(p) for p in pk_state.payoffs]
 
+        stacks_list = [int(s) for s in pk_state.stacks]
+        game_status = pk_state.status
+        game_over_message = None
+        
+        # ONLY check for bust players when the hand is ACTUALLY OVER (status=False)
+        # This prevents premature game-over triggers during active betting
+        if pk_state.status is False:
+            # Check for bust players (0 chips) - this is an end-of-game condition
+            players_with_chips = [i for i, s in enumerate(stacks_list) if s > 0]
+            
+            # Detect game over condition: only one player has chips left
+            if len(players_with_chips) == 1:
+                winner_index = players_with_chips[0]
+                winner_name = player_names[winner_index] if player_names and winner_index < len(player_names) else f"Player {winner_index + 1}"
+                # Use proper grammar: "You win" vs "Player wins"
+                if winner_name.lower() == "you":
+                    game_over_message = f"🏆 CONGRATULATIONS! You win with {stacks_list[winner_index]:,} chips!"
+                else:
+                    game_over_message = f"🏆 GAME OVER! {winner_name} wins with {stacks_list[winner_index]:,} chips!"
+                # Create payoffs based on final chip counts (winner takes all)
+                if final_payoffs is None:
+                    final_payoffs = stacks_list.copy()
+            elif len(players_with_chips) == 0:
+                game_over_message = "🎲 GAME OVER! It's a draw - everyone is bust!"
+
         return GameStateResponse(
             game_id=game_id,
-            status=pk_state.status,
+            status=game_status,
             player_count=pk_state.player_count,
             button_index=determined_button_index,
-            actor_index=pk_state.actor_index,
-            stacks=[int(s) for s in pk_state.stacks],
+            actor_index=pk_state.actor_index if game_status else None,
+            stacks=stacks_list,
             bets=[int(b) for b in pk_state.bets],
             pot_total=pk_state.total_pot_amount,
             board_cards=current_board_cards,
             player_hole_cards=player_hole_cards,
             player_names=player_names,
             payoffs=final_payoffs,
-            available_actions=available_actions,
+            available_actions=available_actions if game_status else [],
             checking_or_calling_amount=checking_or_calling_amount,
             min_raise_to_amount=min_raise_to_amount,
             max_raise_to_amount=max_raise_to_amount,
-            current_round_name=current_round_name,
+            current_round_name="GAME_OVER" if game_over_message else current_round_name,
+            error_message=game_over_message,
         )
 
     def create_new_game_instance(
@@ -150,6 +177,7 @@ class GameService:
         player_names = []  # Store actual player names
         identities = {}
         models = {}  # Store gemini_model per player index
+        custom_prompts = {}  # Store custom AI prompts per player index
         
         # 1. Determine Players and Stacks
         if start_game_request.players and len(start_game_request.players) > 0:
@@ -176,6 +204,10 @@ class GameService:
                 # Store gpt_model if applicable
                 if p_config.gpt_model:
                     models[idx] = p_config.gpt_model
+                
+                # Store custom_prompt if applicable
+                if p_config.custom_prompt:
+                    custom_prompts[idx] = p_config.custom_prompt
                 
         else:
             # Legacy 2-Player Logic
@@ -209,10 +241,12 @@ class GameService:
         self.game_player_identities[game_id] = identities
         self.game_player_models[game_id] = models
         self.game_player_names[game_id] = player_names
+        self.game_player_custom_prompts[game_id] = custom_prompts
         
         print(f"Game {game_id} player identities: {self.game_player_identities[game_id]}")
         print(f"Game {game_id} player models: {self.game_player_models[game_id]}")
         print(f"Game {game_id} player names: {self.game_player_names[game_id]}")
+        print(f"Game {game_id} player custom prompts: {len(custom_prompts)} defined")
 
         # Determine if we return a human context
         # If human_player_index is in request, use it.
@@ -325,7 +359,42 @@ class GameService:
 
         current_player_index = pk_state.actor_index
         if current_player_index is None:
-            print(f"Game {game_id} has no current actor. Hand might be over or in an unexpected state. Street: {pk_state.street_index}")
+            # Check if this is an all-in scenario where we need to deal remaining cards
+            print(f"Game {game_id} has no current actor. Checking for all-in scenario...")
+            
+            # If status is True but no actor, all players might be all-in
+            # We need to deal remaining board cards until showdown
+            try:
+                # Try to deal remaining board cards
+                board_dealt = False
+                max_iterations = 10  # Safety limit
+                iterations = 0
+                
+                while pk_state.status and pk_state.actor_index is None and iterations < max_iterations:
+                    # Check if we can burn and deal board cards
+                    if hasattr(pk_state, 'can_burn_card') and pk_state.can_burn_card():
+                        pk_state.burn_card(None)  # Burn a card
+                        board_dealt = True
+                    elif hasattr(pk_state, 'can_deal_board') and pk_state.can_deal_board():
+                        pk_state.deal_board(None)  # Deal board card(s)
+                        board_dealt = True
+                    else:
+                        # Try direct showdown if available
+                        if len(pk_state.board_cards) >= 5:
+                            # Full board dealt, need to go to showdown
+                            break
+                        else:
+                            # Can't deal more, break to avoid infinite loop
+                            break
+                    iterations += 1
+                
+                if board_dealt:
+                    print(f"Game {game_id}: Dealt remaining board cards in all-in scenario")
+                    self.game_manager.update_game_state(game_id, pk_state)
+                
+            except Exception as e:
+                print(f"Game {game_id}: Error dealing remaining cards: {e}")
+            
             names = self.game_player_names.get(game_id)
             return self._pokerkit_state_to_api_response(game_id, pk_state, None, names)
 
@@ -353,10 +422,14 @@ class GameService:
         # Get optional model for this player (e.g., specific Gemini model)
         player_models_for_game = self.game_player_models.get(game_id, {})
         player_model = player_models_for_game.get(current_player_index, None)
+        
+        # Get optional custom prompt for this player
+        player_custom_prompts_for_game = self.game_player_custom_prompts.get(game_id, {})
+        player_custom_prompt = player_custom_prompts_for_game.get(current_player_index, None)
 
         ai_player = None  # Initialize to avoid "unbound local variable" errors
         try:
-            ai_player = self._get_ai_instance(player_name_or_type, model_name=player_model)
+            ai_player = self._get_ai_instance(player_name_or_type, model_name=player_model, custom_prompt=player_custom_prompt)
             ai_action_request = await ai_player.get_action(pk_state, current_player_index, game_id, player_name_or_type)
             action_taken_details["action"] = ai_action_request.action_type
             if ai_action_request.amount is not None:
@@ -497,14 +570,24 @@ class GameService:
         current_stacks = [int(s) for s in pk_state.stacks]
         
         # Check if anyone is busted (0 chips)
-        # For phase 2 simple version: If human is busted, maybe error? Or let them play with 0? (Impossible)
-        # If AI is busted, we should probably rebuy them or end? 
-        # For now: Just proceed. If stack is 0, PokerKit might error or they are effectively out.
-        if any(s <= 0 for s in current_stacks):
-             # Simple "Rebuy" logic for prototype: If 0, give 1000 so game doesn't crash? 
-             # No, user wants "until player runs out of money". 
-             # If human runs out, game over.
-             pass
+        players_with_chips = [i for i, s in enumerate(current_stacks) if s > 0]
+        
+        # If only one player has chips, they've won the game!
+        if len(players_with_chips) <= 1:
+            winner_index = players_with_chips[0] if players_with_chips else 0
+            player_names = self.game_player_names.get(game_id, [])
+            winner_name = player_names[winner_index] if winner_index < len(player_names) else f"Player {winner_index + 1}"
+            
+            response = self._pokerkit_state_to_api_response(game_id, pk_state, None, player_names)
+            response.error_message = f"🏆 GAME OVER! {winner_name} wins with {current_stacks[winner_index]} chips!"
+            return response
+        
+        # For players who are bust but game continues, give them minimum 1 chip
+        # This prevents PokerKit errors while making them essentially "all-in" immediately
+        for i, stack in enumerate(current_stacks):
+            if stack <= 0:
+                current_stacks[i] = 1  # Minimum viable stack
+                print(f"Player {i} was bust, given minimum 1 chip to continue")
 
         # 2. Determine new button index
         # Default rotation

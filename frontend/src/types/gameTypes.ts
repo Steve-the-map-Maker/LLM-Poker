@@ -11,6 +11,7 @@ export interface PlayerConfig {
     stack?: number;
     gemini_model?: string; // Optional: specific Gemini model version
     gpt_model?: string; // Optional: specific GPT model version
+    custom_prompt?: string; // Optional: custom AI personality/strategy instructions
 }
 
 export interface StartGameRequest {

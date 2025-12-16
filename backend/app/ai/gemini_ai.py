@@ -16,11 +16,12 @@ class GeminiAI(AIPlayer):
     _last_request_time = 0
     _min_request_interval = 4.5  # 4.5 seconds = ~13 RPM (safe margin under 15 RPM limit)
     
-    def __init__(self, model_name: str = "gemini-2.5-flash-lite"):
+    def __init__(self, model_name: str = "gemini-2.5-flash", custom_prompt: str = None):
         # Prioritize GEMINI_API_KEY as per .env standard
         self.api_key = settings.GEMINI_API_KEY
         self.model = None
         self.model_name = model_name
+        self.custom_prompt = custom_prompt  # User-defined AI personality
         self.last_error: Optional[str] = None  # Track last error for visibility
         if not self.api_key:
             print("Warning: GEMINI_API_KEY not found. Gemini AI will fail.")
@@ -37,8 +38,8 @@ class GeminiAI(AIPlayer):
         # Clear previous error
         self.last_error = None
         
-        # 1. Format state into prompt
-        prompt = format_poker_state_for_llm(pk_state, player_index, game_id, player_name, [])
+        # 1. Format state into prompt (pass custom_prompt for personalized AI behavior)
+        prompt = format_poker_state_for_llm(pk_state, player_index, game_id, player_name, [], self.custom_prompt)
         print(f"\n--- Prompt for {player_name} (Gemini: {self.model_name}) ---")
         print(prompt)
         print("-----------------------------------\n")

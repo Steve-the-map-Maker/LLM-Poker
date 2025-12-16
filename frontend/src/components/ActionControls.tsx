@@ -62,7 +62,7 @@ const ActionControls: React.FC<ActionControlsProps> = ({
       alert(`Raise amount must be between ${minRaiseToAmount} and ${maxRaiseToAmount}. Your stack: ${playerStack}`);
     }
   };
-  
+
   const handleRaiseAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10);
     setRaiseAmount(isNaN(value) ? 0 : value);
@@ -92,16 +92,23 @@ const ActionControls: React.FC<ActionControlsProps> = ({
           />
           {canBet && <button onClick={handleBet} disabled={isLoading || raiseAmount < minRaiseToAmount || raiseAmount > maxRaiseToAmount}>Bet</button>}
           {canRaise && <button onClick={handleRaise} disabled={isLoading || raiseAmount < minRaiseToAmount || raiseAmount > maxRaiseToAmount}>Raise to {raiseAmount}</button>}
-          <input 
-            type="range" 
-            min={minRaiseToAmount} 
-            max={maxRaiseToAmount} 
-            value={raiseAmount} 
-            onChange={handleRaiseAmountChange} 
+          <button
+            onClick={() => onPlayerAction(canBet ? 'bet' : 'raise', maxRaiseToAmount)}
             disabled={isLoading}
-            style={{width: "100px", marginLeft: "10px"}}
+            style={{ backgroundColor: '#dc3545', marginLeft: '5px' }}
+          >
+            🔥 All-In ({maxRaiseToAmount})
+          </button>
+          <input
+            type="range"
+            min={minRaiseToAmount}
+            max={maxRaiseToAmount}
+            value={raiseAmount}
+            onChange={handleRaiseAmountChange}
+            disabled={isLoading}
+            style={{ width: "100px", marginLeft: "10px" }}
           />
-           <small> (Min: {minRaiseToAmount}, Max: {maxRaiseToAmount}, Stack: {playerStack})</small>
+          <small> (Min: {minRaiseToAmount}, Max: {maxRaiseToAmount}, Stack: {playerStack})</small>
         </div>
       )}
       {isLoading && <p>Processing action...</p>}

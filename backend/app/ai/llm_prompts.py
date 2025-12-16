@@ -1,10 +1,11 @@
 import pokerkit
-from typing import List
+from typing import List, Optional
 
-def format_poker_state_for_llm(pk_state: pokerkit.State, player_index_for_ai: int, game_id: str, player_name: str, history: List[str]) -> str:
+def format_poker_state_for_llm(pk_state: pokerkit.State, player_index_for_ai: int, game_id: str, player_name: str, history: List[str], custom_instructions: Optional[str] = None) -> str:
     """
     Formats the current poker game state into a detailed text prompt for an LLM.
     Uses PokerKit State object to extract comprehensive game information.
+    custom_instructions: Optional user-defined personality/strategy for the AI.
     """
     try:
         # --- Concise Context ---
@@ -19,14 +20,23 @@ def format_poker_state_for_llm(pk_state: pokerkit.State, player_index_for_ai: in
             "3. Pre-flop with any two cards: CALL small raises, don't fold easily.",
             "4. Position matters: Later position = more information = play more hands.",
             "",
-            "=== YOUR STRATEGY (Loose-Aggressive) ===",
-            "- Play MANY hands, not just premium hands",
-            "- RAISE often with good hands (pairs, suited connectors, broadway)",
-            "- CALL with marginal hands rather than folding",
-            "- Bluff occasionally, especially in position",
-            "- ONLY FOLD when facing a big raise with nothing",
-            "",
         ]
+        
+        # Add custom user-defined personality/strategy if provided
+        if custom_instructions and custom_instructions.strip():
+            prompt_parts.append("=== YOUR PERSONALITY (User-Defined) ===")
+            prompt_parts.append(custom_instructions.strip())
+            prompt_parts.append("")
+        else:
+            # Default strategy if no custom instructions
+            prompt_parts.append("=== YOUR STRATEGY (Loose-Aggressive) ===")
+            prompt_parts.append("- Play MANY hands, not just premium hands")
+            prompt_parts.append("- RAISE often with good hands (pairs, suited connectors, broadway)")
+            prompt_parts.append("- CALL with marginal hands rather than folding")
+            prompt_parts.append("- Bluff occasionally, especially in position")
+            prompt_parts.append("- ONLY FOLD when facing a big raise with nothing")
+            prompt_parts.append("")
+        
         
         # --- State Snapshot ---
         # Hand & Board

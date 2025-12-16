@@ -21,12 +21,14 @@ class PokerGameManager:
         self.initial_stacks = initial_stacks if initial_stacks is not None else [20000, 20000]
         
         # Explicitly define automations to ensure smooth game flow
+        # RUNOUT_COUNT_SELECTION is required for all-in scenarios to complete automatically
         self.default_automations = [
             pokerkit.Automation.ANTE_POSTING,
             pokerkit.Automation.BET_COLLECTION,
             pokerkit.Automation.BLIND_OR_STRADDLE_POSTING,
             pokerkit.Automation.HOLE_DEALING,
             pokerkit.Automation.BOARD_DEALING,
+            pokerkit.Automation.RUNOUT_COUNT_SELECTION,  # Required for all-in completion
             pokerkit.Automation.HOLE_CARDS_SHOWING_OR_MUCKING,
             pokerkit.Automation.HAND_KILLING,
             pokerkit.Automation.CHIPS_PUSHING,
