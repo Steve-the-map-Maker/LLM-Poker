@@ -49,8 +49,42 @@ main {
   flex: 1;
   gap: 0;
   height: calc(100vh - 100px);
+  /* Space for left sidebar (280px) and right chat panel (300px) */
+  margin-left: 280px;
   margin-right: 300px;
-  /* Make room for fixed chat panel */
+}
+
+/* LEFT SIDEBAR */
+.left-sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 280px;
+  background: linear-gradient(180deg, rgba(20, 20, 30, 0.98) 0%, rgba(15, 15, 25, 0.99) 100%);
+  border-right: 1px solid rgba(255, 215, 0, 0.2);
+  padding: 20px 15px;
+  overflow-y: auto;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sidebar-section {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  padding: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-title {
+  margin: 0 0 15px 0;
+  font-size: 1em;
+  color: #ffd700;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .game-area {
@@ -58,9 +92,11 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   overflow-y: auto;
-  max-height: calc(100vh - 100px);
+  max-height: calc(100vh - 20px);
   position: relative;
+  padding: 20px;
 }
 
 /* ========================================

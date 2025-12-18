@@ -15,7 +15,7 @@ const App: React.FC = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [humanPlayerIndex, setHumanPlayerIndex] = useState<number | null>(null);
-    const [autoPlay, setAutoPlay] = useState<boolean>(false);
+    const [autoPlay, setAutoPlay] = useState<boolean>(true);
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
     const [messageId, setMessageId] = useState<number>(0);
     const [showLoadingModal, setShowLoadingModal] = useState<boolean>(false);
@@ -75,7 +75,7 @@ const App: React.FC = () => {
         setIsLoading(true);
         setShowLoadingModal(true);
         setError(null);
-        setAutoPlay(false); // Reset auto-play on new game
+        // keep autoPlay as is (default true)
         try {
             let determinedHumanPlayerIndex: number | null = null;
             // Find first human
@@ -303,6 +303,44 @@ const App: React.FC = () => {
                     <LLMSelector onStartGame={handleStartGame} isLoading={isLoading} />
                 ) : (
                     <div className="game-container" style={{ height: 'calc(100vh - 20px)' }}>
+                        {/* LEFT SIDEBAR - Controls */}
+                        <div className="left-sidebar">
+                            <div className="sidebar-section">
+                                <h3 className="sidebar-title">🎮 Game Controls</h3>
+                                <GameControls
+                                    onNextAiTurn={handleNextAiTurn}
+                                    onResetGame={handleResetGame}
+                                    onNextHand={handleNextHand}
+                                    gameId={gameId}
+                                    isGameOver={gameState ? !gameState.status : false}
+                                    isLoading={isLoading}
+                                    isHumanPlayer={humanPlayerIndex !== null}
+                                    isHumanTurn={isHumanTurn}
+                                    autoPlay={autoPlay}
+                                    onToggleAutoPlay={() => setAutoPlay(!autoPlay)}
+                                />
+                            </div>
+
+                            {isHumanTurn && gameState && (
+                                <div className="sidebar-section">
+                                    <ActionControls
+                                        gameId={gameId}
+                                        humanPlayerIndex={humanPlayerIndex}
+                                        isHumanTurn={isHumanTurn}
+                                        availableActions={gameState.available_actions || []}
+                                        checkingOrCallingAmount={gameState.checking_or_calling_amount || 0}
+                                        minRaiseToAmount={gameState.min_raise_to_amount || 0}
+                                        maxRaiseToAmount={gameState.max_raise_to_amount || humanPlayerStack}
+                                        playerStack={humanPlayerStack}
+                                        onPlayerAction={handlePlayerAction}
+                                        isLoading={isLoading}
+                                        potTotal={gameState.pot_total || 0}
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        {/* CENTER - Game Table */}
                         <div className="game-area">
                             <PokerTable
                                 gameState={gameState}
@@ -334,34 +372,9 @@ const App: React.FC = () => {
                                     </div>
                                 </div>
                             )}
-
-                            {isHumanTurn && gameState && (
-                                <ActionControls
-                                    gameId={gameId}
-                                    humanPlayerIndex={humanPlayerIndex}
-                                    isHumanTurn={isHumanTurn}
-                                    availableActions={gameState.available_actions || []}
-                                    checkingOrCallingAmount={gameState.checking_or_calling_amount || 0}
-                                    minRaiseToAmount={gameState.min_raise_to_amount || 0}
-                                    maxRaiseToAmount={gameState.max_raise_to_amount || humanPlayerStack}
-                                    playerStack={humanPlayerStack}
-                                    onPlayerAction={handlePlayerAction}
-                                    isLoading={isLoading}
-                                />
-                            )}
-                            <GameControls
-                                onNextAiTurn={handleNextAiTurn}
-                                onResetGame={handleResetGame}
-                                onNextHand={handleNextHand}
-                                gameId={gameId}
-                                isGameOver={gameState ? !gameState.status : false}
-                                isLoading={isLoading}
-                                isHumanPlayer={humanPlayerIndex !== null}
-                                isHumanTurn={isHumanTurn}
-                                autoPlay={autoPlay}
-                                onToggleAutoPlay={() => setAutoPlay(!autoPlay)}
-                            />
                         </div>
+
+                        {/* RIGHT SIDEBAR - Chat */}
                         <ChatPanel
                             messages={chatMessages}
                             gameId={gameId}

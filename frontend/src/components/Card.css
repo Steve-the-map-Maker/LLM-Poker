@@ -1,34 +1,109 @@
+/* Card.css - Premium Playing Cards */
+
 .poker-card {
   width: 60px;
   height: 84px;
-  background-color: white;
-  border-radius: 6px;
-  border: 1px solid #d0d0d0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(145deg, #ffffff 0%, #f8f8f8 50%, #ffffff 100%);
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.15),
+    0 1px 2px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
   display: inline-flex;
   flex-direction: column;
   justify-content: space-between;
   padding: 4px;
-  /* Tight padding */
   margin: 2px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'Georgia', 'Times New Roman', serif;
   font-weight: 700;
   position: relative;
   user-select: none;
-  background-size: cover;
+  transition: all 0.2s ease;
+  transform-style: preserve-3d;
+  overflow: hidden;
+}
+
+/* Glossy shine overlay */
+.poker-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(180deg,
+      rgba(255, 255, 255, 0.4) 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      transparent 100%);
+  border-radius: 7px 7px 100% 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Animated shine effect on hover */
+.poker-card::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg,
+      transparent 40%,
+      rgba(255, 255, 255, 0.3) 50%,
+      transparent 60%);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+  pointer-events: none;
+  z-index: 11;
+}
+
+.poker-card:hover::after {
+  transform: translateX(100%);
 }
 
 .poker-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+  transform: translateY(-4px) rotateX(5deg);
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.25),
+    0 4px 8px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .poker-card.red {
-  color: #d32f2f;
+  color: #c41e3a;
 }
 
 .poker-card.black {
-  color: #212121;
+  color: #1a1a1a;
+}
+
+/* Winner card glow */
+.poker-card.winner {
+  box-shadow:
+    0 0 20px rgba(255, 215, 0, 0.6),
+    0 0 40px rgba(255, 215, 0, 0.3),
+    0 4px 12px rgba(0, 0, 0, 0.2);
+  animation: cardWinPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes cardWinPulse {
+
+  0%,
+  100% {
+    box-shadow:
+      0 0 20px rgba(255, 215, 0, 0.6),
+      0 0 40px rgba(255, 215, 0, 0.3),
+      0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  50% {
+    box-shadow:
+      0 0 30px rgba(255, 215, 0, 0.8),
+      0 0 60px rgba(255, 215, 0, 0.4),
+      0 4px 12px rgba(0, 0, 0, 0.2);
+  }
 }
 
 /* Corner Layout */
@@ -37,9 +112,10 @@
   flex-direction: column;
   align-items: center;
   position: absolute;
-  top: 3px;
-  left: 3px;
+  top: 4px;
+  left: 4px;
   line-height: 1;
+  z-index: 5;
 }
 
 .card-bottom-right {
@@ -47,59 +123,119 @@
   flex-direction: column;
   align-items: center;
   position: absolute;
-  bottom: 3px;
-  right: 3px;
+  bottom: 4px;
+  right: 4px;
   line-height: 1;
   transform: rotate(180deg);
+  z-index: 5;
 }
 
 .rank-text {
   font-size: 16px;
+  font-weight: 800;
   letter-spacing: -1px;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
 }
 
 .suit-icon {
-  font-size: 12px;
-  height: 12px;
+  font-size: 14px;
+  height: 14px;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.1));
 }
 
 /* Center Suit */
 .card-center-suit {
   position: absolute;
   top: 55%;
-  /* Slight optical adjustment */
   left: 50%;
   transform: translate(-50%, -50%);
   font-size: 36px;
-  /* Big center icon */
-  opacity: 0.9;
+  opacity: 0.95;
+  z-index: 5;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.1));
 }
 
-/* Hidden Card Back "Bicycle" Style Pattern */
+/* Hidden Card Back - Premium Casino Style */
 .poker-card.hidden {
-  background-color: #fff;
-  border: 1px solid white;
+  background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #1a237e 100%);
+  border: 2px solid #c9a227;
+  cursor: default;
+}
+
+.poker-card.hidden::before {
+  background: linear-gradient(180deg,
+      rgba(255, 255, 255, 0.15) 0%,
+      transparent 50%);
+}
+
+.poker-card.hidden:hover {
+  transform: none;
 }
 
 .card-pattern {
   width: 100%;
   height: 100%;
-  background-image: repeating-linear-gradient(135deg,
-      #c62828 0px,
-      #c62828 2px,
-      white 2px,
-      white 4px,
-      #c62828 4px,
-      #c62828 6px,
-      white 6px,
-      white 8px);
-  border-radius: 4px;
-  border: 2px solid white;
-  /* Inner border for the classic look */
+  border-radius: 5px;
+  background:
+    repeating-linear-gradient(45deg,
+      transparent,
+      transparent 4px,
+      rgba(201, 162, 39, 0.15) 4px,
+      rgba(201, 162, 39, 0.15) 8px),
+    repeating-linear-gradient(-45deg,
+      transparent,
+      transparent 4px,
+      rgba(201, 162, 39, 0.15) 4px,
+      rgba(201, 162, 39, 0.15) 8px);
+  position: relative;
+  overflow: hidden;
 }
 
-/* Small visual tweaks for specific ranks/suits could go here */
+/* Diamond pattern center on card back */
+.card-pattern::before {
+  content: '♠♥♦♣';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: rgba(201, 162, 39, 0.6);
+  text-shadow: 0 0 10px rgba(201, 162, 39, 0.3);
+}
+
+/* Card deal animation */
+@keyframes cardDeal {
+  0% {
+    opacity: 0;
+    transform: translateY(-30px) rotateY(180deg) scale(0.8);
+  }
+
+  60% {
+    opacity: 1;
+    transform: translateY(5px) rotateY(0deg) scale(1.02);
+  }
+
+  100% {
+    transform: translateY(0) rotateY(0deg) scale(1);
+  }
+}
+
+.poker-card.dealing {
+  animation: cardDeal 0.5s ease-out forwards;
+}
+
+/* Placeholder */
+.poker-card.placeholder {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
 
 /* ========================================
    CARD MOBILE RESPONSIVE STYLES
@@ -107,46 +243,48 @@
 
 @media screen and (max-width: 768px) {
   .poker-card {
-    width: 45px;
-    height: 63px;
+    width: 48px;
+    height: 67px;
     padding: 3px;
-    border-radius: 5px;
+    border-radius: 6px;
   }
 
   .rank-text {
     font-size: 13px;
-    margin-bottom: 1px;
+    margin-bottom: 0;
   }
 
   .suit-icon {
-    font-size: 10px;
-    height: 10px;
+    font-size: 11px;
+    height: 11px;
   }
 
   .card-center-suit {
-    font-size: 26px;
+    font-size: 28px;
   }
 
-  .card-top-left,
-  .card-bottom-right {
-    top: 2px;
-    left: 2px;
+  .card-top-left {
+    top: 3px;
+    left: 3px;
   }
 
   .card-bottom-right {
-    bottom: 2px;
-    right: 2px;
-    top: auto;
-    left: auto;
+    bottom: 3px;
+    right: 3px;
+  }
+
+  /* Disable 3D hover on mobile for performance */
+  .poker-card:hover {
+    transform: translateY(-2px);
   }
 }
 
 @media screen and (max-width: 480px) {
   .poker-card {
-    width: 38px;
-    height: 53px;
+    width: 40px;
+    height: 56px;
     padding: 2px;
-    border-radius: 4px;
+    border-radius: 5px;
     margin: 1px;
   }
 
@@ -155,11 +293,17 @@
   }
 
   .suit-icon {
-    font-size: 8px;
-    height: 8px;
+    font-size: 9px;
+    height: 9px;
   }
 
   .card-center-suit {
-    font-size: 20px;
+    font-size: 22px;
+  }
+
+  /* Tap highlight instead of hover */
+  .poker-card:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
 }

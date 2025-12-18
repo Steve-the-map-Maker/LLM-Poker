@@ -1,4 +1,5 @@
 import React from 'react';
+import './GameControls.css';
 
 interface GameControlsProps {
     onNextAiTurn: () => void;

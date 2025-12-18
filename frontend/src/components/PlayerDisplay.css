@@ -1,4 +1,4 @@
-/* PlayerDisplay.css */
+/* PlayerDisplay.css - Premium Player UI */
 
 .player-display {
     position: relative;
@@ -6,223 +6,318 @@
     flex-direction: column;
     align-items: center;
     transition: all 0.3s ease;
+    padding: 5px;
 }
 
-/* Avatar Circle */
+/* Folded player state */
+.player-display.folded {
+    opacity: 0.4;
+    filter: grayscale(60%);
+}
+
+.player-display.folded::after {
+    content: '✕';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 40px;
+    color: rgba(255, 0, 0, 0.6);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    z-index: 15;
+}
+
+/* Avatar Circle - Compact premium style */
 .player-avatar {
-    width: 60px;
-    height: 60px;
+    width: 55px;
+    height: 55px;
     border-radius: 50%;
-    background-color: #333;
+    background: linear-gradient(145deg, #3a3a4a 0%, #2a2a35 50%, #1a1a25 100%);
     border: 3px solid #555;
     display: flex;
     justify-content: center;
     align-items: center;
     margin-bottom: 5px;
     position: relative;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.4),
+        inset 0 2px 4px rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
 }
 
+/* Active player - gold ring with timer */
 .player-avatar.active {
-    border-color: var(--accent-gold);
-    box-shadow: 0 0 15px var(--accent-gold);
+    border-color: #ffd700;
+    box-shadow:
+        0 0 20px rgba(255, 215, 0, 0.5),
+        0 0 40px rgba(255, 215, 0, 0.3);
+    animation: activeGlow 2s ease-in-out infinite;
 }
 
+@keyframes activeGlow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.5), 0 0 40px rgba(255, 215, 0, 0.3);
+    }
+
+    50% {
+        box-shadow: 0 0 30px rgba(255, 215, 0, 0.7), 0 0 60px rgba(255, 215, 0, 0.4);
+    }
+}
+
+/* Timer ring animation */
+.player-avatar.active::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    right: -5px;
+    bottom: -5px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    border-top-color: #ffd700;
+    animation: timerRing 3s linear infinite;
+}
+
+@keyframes timerRing {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Winner state */
 .player-avatar.winner {
     border-color: #4CAF50;
-    box-shadow: 0 0 20px #4CAF50;
+    box-shadow: 0 0 25px rgba(76, 175, 80, 0.6), 0 0 50px rgba(76, 175, 80, 0.3);
+    animation: winnerPulse 1s ease-in-out infinite;
+}
+
+@keyframes winnerPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
 }
 
 .avatar-initial {
-    font-size: 24px;
-    font-weight: bold;
-    color: white;
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-/* Dealer Button */
+/* Dealer Button - Premium chip style */
 .dealer-button {
     position: absolute;
-    bottom: -5px;
-    right: -5px;
-    width: 20px;
-    height: 20px;
-    background-color: white;
-    color: black;
+    bottom: -3px;
+    right: -3px;
+    width: 22px;
+    height: 22px;
+    background: linear-gradient(135deg, #fff 0%, #e0e0e0 50%, #fff 100%);
+    color: #1a1a1a;
     border-radius: 50%;
-    border: 2px solid #ccc;
-    font-size: 12px;
-    font-weight: bold;
+    border: 2px solid #333;
+    font-size: 11px;
+    font-weight: 900;
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 5;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
-/* Info Box (Name/Stack) */
+/* Info Box - Compact glassmorphism */
 .player-info {
-    background-color: rgba(0, 0, 0, 0.7);
-    padding: 4px 8px;
-    border-radius: 4px;
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.9));
+    padding: 5px 10px;
+    border-radius: 8px;
     text-align: center;
     min-width: 80px;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .player-name {
-    font-size: 0.9em;
+    font-size: 0.85em;
     color: #fff;
     margin: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100px;
+    max-width: 90px;
+    font-weight: 600;
 }
 
 .player-stack {
-    font-size: 0.8em;
-    color: var(--accent-gold);
-    margin: 0;
-    font-weight: bold;
+    font-size: 0.9em;
+    color: #ffd700;
+    margin: 2px 0 0 0;
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
 }
 
-/* Hole Cards - Floating near/behind avatar */
+/* Hole Cards - Floating above avatar */
 .player-cards {
     position: absolute;
     top: -40px;
-    /* Adjust to float above/behind */
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    gap: -20px;
-    /* Overlap cards */
-    z-index: 2;
-    /* Behind avatar? Or in front? Usually front but small. */
-    /* Let's put them slightly overlapping the avatar or just above */
+    gap: -18px;
+    z-index: 3;
 }
 
-/* Overlap effect */
 .player-cards .poker-card {
-    margin: 0 -15px;
-    /* Negative margin for overlap */
-    transition: margin 0.2s;
-    box-shadow: -2px 2px 5px rgba(0, 0, 0, 0.3);
+    margin: 0 -10px;
+    transition: all 0.2s ease;
+    box-shadow: -3px 3px 8px rgba(0, 0, 0, 0.4);
 }
 
 .player-cards:hover .poker-card {
     margin: 0 2px;
-    /* Spread on hover */
-    z-index: 10;
 }
 
-/* Current Bet with Chip Stack */
+/* Current Round Bet - POSITIONED TOWARD CENTER */
 .player-bet {
-    margin-top: 8px;
-    background: linear-gradient(145deg, rgba(40, 40, 40, 0.95), rgba(20, 20, 20, 0.95));
-    border: 2px solid rgba(255, 215, 0, 0.4);
-    border-radius: 20px;
-    padding: 6px 14px;
-    color: #ffd700;
-    font-size: 0.9em;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    animation: slideIn 0.3s ease-out;
+    position: absolute;
+    z-index: 10;
+    animation: betSlideIn 0.4s ease-out;
 }
 
-@keyframes slideIn {
+/* Position bets toward table center based on seat position */
+.seat-0 .player-bet {
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 10px;
+}
+
+.seat-1 .player-bet {
+    top: 30%;
+    right: -20px;
+    transform: translateX(100%);
+}
+
+.seat-2 .player-bet {
+    bottom: 30%;
+    right: -20px;
+    transform: translateX(100%);
+}
+
+.seat-3 .player-bet {
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 10px;
+}
+
+.seat-4 .player-bet {
+    bottom: 30%;
+    left: -20px;
+    transform: translateX(-100%);
+}
+
+.seat-5 .player-bet {
+    top: 30%;
+    left: -20px;
+    transform: translateX(-100%);
+}
+
+@keyframes betSlideIn {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateX(-50%) scale(0.8);
     }
 
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateX(-50%) scale(1);
     }
 }
 
-/* Chip Stack Icon */
-.chip-stack {
-    display: flex;
-    flex-direction: column;
-    gap: -6px;
-    position: relative;
-}
-
-.chip-icon {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    display: inline-block;
-    position: relative;
-    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 50%, #a93226 100%);
-    border: 2px solid #fff;
-    box-shadow:
-        inset 0 2px 4px rgba(255, 255, 255, 0.3),
-        inset 0 -2px 4px rgba(0, 0, 0, 0.3),
-        0 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-.chip-icon::before {
-    content: '';
-    position: absolute;
-    top: 3px;
-    left: 3px;
-    right: 3px;
-    bottom: 3px;
-    border: 2px dashed rgba(255, 255, 255, 0.6);
-    border-radius: 50%;
-}
-
-.chip-icon::after {
-    content: '$';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 10px;
-    font-weight: bold;
-    color: #fff;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-}
-
+/* Last Action Bubble */
 .last-action-bubble {
     position: absolute;
-    top: 50%;
-    left: 100%;
-    transform: translateY(-50%);
-    background-color: rgba(0, 0, 0, 0.8);
+    top: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(20, 20, 30, 0.95));
     color: white;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.8em;
+    padding: 5px 10px;
+    border-radius: 10px;
+    font-size: 0.75em;
+    font-weight: 600;
     white-space: nowrap;
-    margin-left: 10px;
     pointer-events: none;
-    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    animation: bubblePop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    z-index: 20;
 }
 
-@keyframes popIn {
+@keyframes bubblePop {
     from {
-        transform: translateY(-50%) scale(0);
+        transform: translateX(-50%) scale(0);
+        opacity: 0;
     }
 
     to {
-        transform: translateY(-50%) scale(1);
+        transform: translateX(-50%) scale(1);
+        opacity: 1;
+    }
+}
+
+/* Payoff Display */
+.payoff-display {
+    position: absolute;
+    top: -75px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-weight: 800;
+    font-size: 1.1em;
+    z-index: 25;
+    animation: payoffFloat 0.5s ease-out forwards;
+}
+
+.payoff-display.win {
+    color: #4CAF50;
+    text-shadow: 0 0 15px rgba(76, 175, 80, 0.6);
+}
+
+.payoff-display.loss {
+    color: #ff4444;
+}
+
+@keyframes payoffFloat {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
     }
 }
 
 /* ========================================
-   PLAYER DISPLAY MOBILE RESPONSIVE STYLES
+   TABLET RESPONSIVE
    ======================================== */
-
 @media screen and (max-width: 768px) {
     .player-avatar {
         width: 45px;
         height: 45px;
-        border-width: 2px;
-        margin-bottom: 3px;
     }
 
     .avatar-initial {
@@ -230,114 +325,69 @@
     }
 
     .dealer-button {
-        width: 16px;
-        height: 16px;
-        font-size: 10px;
-        bottom: -3px;
-        right: -3px;
+        width: 18px;
+        height: 18px;
+        font-size: 9px;
     }
 
     .player-info {
-        padding: 3px 6px;
+        padding: 4px 8px;
         min-width: 60px;
     }
 
     .player-name {
         font-size: 0.75em;
-        max-width: 70px;
+        max-width: 65px;
     }
 
     .player-stack {
-        font-size: 0.7em;
+        font-size: 0.8em;
     }
 
     .player-cards {
         top: -32px;
     }
 
-    .player-cards .poker-card {
-        margin: 0 -10px;
-    }
-
-    .player-bet {
-        padding: 4px 10px;
-        font-size: 0.8em;
-        margin-top: 5px;
-        border-radius: 15px;
-    }
-
-    .chip-icon {
-        width: 16px;
-        height: 16px;
-    }
-
-    .chip-icon::after {
-        font-size: 8px;
-    }
-
     .last-action-bubble {
-        padding: 3px 6px;
-        font-size: 0.7em;
-        margin-left: 6px;
+        font-size: 0.65em;
+        padding: 4px 8px;
     }
 }
 
+/* ========================================
+   SMALL MOBILE
+   ======================================== */
 @media screen and (max-width: 480px) {
     .player-avatar {
-        width: 36px;
-        height: 36px;
+        width: 38px;
+        height: 38px;
     }
 
     .avatar-initial {
-        font-size: 14px;
+        font-size: 15px;
     }
 
     .dealer-button {
-        width: 14px;
-        height: 14px;
+        width: 15px;
+        height: 15px;
         font-size: 8px;
     }
 
     .player-info {
-        padding: 2px 4px;
+        padding: 3px 6px;
         min-width: 50px;
     }
 
     .player-name {
         font-size: 0.65em;
-        max-width: 55px;
+        max-width: 50px;
     }
 
     .player-stack {
-        font-size: 0.6em;
+        font-size: 0.7em;
     }
 
     .player-cards {
         top: -28px;
-    }
-
-    .player-cards .poker-card {
-        margin: 0 -12px;
-    }
-
-    .player-bet {
-        padding: 3px 8px;
-        font-size: 0.7em;
-        gap: 5px;
-    }
-
-    .chip-icon {
-        width: 14px;
-        height: 14px;
-    }
-
-    .last-action-bubble {
-        /* On very small screens, position below instead of beside */
-        position: relative;
-        left: 0;
-        top: 3px;
-        margin-left: 0;
-        transform: none;
-        display: inline-block;
     }
 }

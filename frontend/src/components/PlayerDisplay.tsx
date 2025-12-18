@@ -1,6 +1,7 @@
 import React from 'react';
 import { PlayerState } from '../types/gameTypes';
 import Card from './Card';
+import ChipStack from './ChipStack';
 import './PlayerDisplay.css';
 
 interface PlayerDisplayProps {
@@ -43,7 +44,7 @@ const PlayerDisplay: React.FC<PlayerDisplayProps> = ({ player, isDealer, showCar
     }
 
     return (
-        <div className={`player-display ${player.isActor ? 'active' : ''}`}>
+        <div className={`player-display ${player.isActor ? 'active' : ''} ${isFolded ? 'folded' : ''}`}>
             {/* Action Bubble (e.g. "Check", "Raise 500") */}
             {player.lastAction && (
                 <div className="last-action-bubble">
@@ -68,11 +69,10 @@ const PlayerDisplay: React.FC<PlayerDisplayProps> = ({ player, isDealer, showCar
                 <p className="player-stack">${player.stack}</p>
             </div>
 
-            {/* Current Round Bet */}
+            {/* Current Round Bet - Now with visual chips! */}
             {player.currentBet > 0 && (
                 <div className="player-bet">
-                    <span className="chip-icon"></span>
-                    {player.currentBet}
+                    <ChipStack amount={player.currentBet} size="small" />
                 </div>
             )}
 

@@ -1,102 +1,179 @@
-/* PokerTable.css */
+/* PokerTable.css - Premium Casino Table */
 
 .poker-table-container {
     position: relative;
     width: 100%;
     max-width: 1000px;
     height: 600px;
-    /* Fixed height for consistent positioning */
     margin: 0 auto;
     background-color: transparent;
     display: flex;
     justify-content: center;
     align-items: center;
     overflow: hidden;
-    /* Prevent spillover */
+    perspective: 1000px;
 }
 
-/* The actual felt table */
+/* The actual felt table - Premium Casino Look */
 .poker-felt {
     position: relative;
     width: 80%;
     height: 70%;
-    background: radial-gradient(ellipse at center, var(--table-felt) 0%, #032d12 100%);
-    border: 15px solid var(--table-border);
+    /* Multi-layer felt texture */
+    background:
+        /* Felt texture noise */
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E"),
+        /* Main felt gradient */
+        radial-gradient(ellipse at 50% 40%, #0d5c2e 0%, #084a24 40%, #063d1d 70%, #032d12 100%);
     border-radius: 200px;
     /* Oval shape */
+
+    /* Wood grain border effect */
+    border: 18px solid transparent;
+    background-clip: padding-box;
+
     box-shadow:
-        inset 0 0 40px rgba(0, 0, 0, 0.8),
-        /* Inner shadow depth */
-        0 10px 30px rgba(0, 0, 0, 0.5);
-    /* Drop shadow */
+        /* Inner felt shadow for depth */
+        inset 0 0 60px rgba(0, 0, 0, 0.7),
+        inset 0 0 120px rgba(0, 0, 0, 0.3),
+        /* Outer glow */
+        0 0 30px rgba(0, 0, 0, 0.5),
+        /* Drop shadow */
+        0 15px 40px rgba(0, 0, 0, 0.6);
+
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
 }
 
+/* Wood grain rail border */
+.poker-felt::before {
+    content: '';
+    position: absolute;
+    top: -18px;
+    left: -18px;
+    right: -18px;
+    bottom: -18px;
+    border-radius: 210px;
+    background:
+        /* Wood grain pattern */
+        repeating-linear-gradient(90deg,
+            #4a3728 0px,
+            #5d4632 2px,
+            #3e2d20 4px,
+            #4a3728 6px);
+    z-index: -1;
+    box-shadow:
+        inset 0 4px 8px rgba(255, 255, 255, 0.1),
+        inset 0 -4px 8px rgba(0, 0, 0, 0.4),
+        0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* Inner rail highlight */
+.poker-felt::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 185px;
+    border: 3px solid rgba(255, 215, 0, 0.15);
+    pointer-events: none;
+}
+
+/* Community cards area with glow */
 .community-cards-area {
     display: flex;
     justify-content: center;
-    gap: 10px;
+    gap: 12px;
     margin-bottom: 20px;
     min-height: 90px;
+    padding: 15px 25px;
+    background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.3) 0%, transparent 70%);
+    border-radius: 20px;
+    position: relative;
 }
 
+/* Subtle glow under community cards */
+.community-cards-area::before {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    height: 20px;
+    background: radial-gradient(ellipse at center, rgba(255, 215, 0, 0.15) 0%, transparent 70%);
+    filter: blur(10px);
+}
+
+/* Pot display - Premium styling */
 .table-center-info {
     text-align: center;
-    color: rgba(255, 255, 255, 0.9);
-    background: linear-gradient(145deg, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
-    padding: 12px 24px;
-    border-radius: 30px;
-    border: 2px solid rgba(255, 215, 0, 0.3);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.95);
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.8));
+    padding: 15px 30px;
+    border-radius: 40px;
+    border: 2px solid rgba(255, 215, 0, 0.4);
+    box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 0 30px rgba(255, 215, 0, 0.1);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
+    backdrop-filter: blur(5px);
 }
 
 .table-center-info h4 {
     margin: 0;
-    font-size: 1.4em;
+    font-size: 1.5em;
+    font-weight: 700;
     color: #ffd700;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 215, 0, 0.3);
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
 }
 
+/* Chip stack icon in pot display */
 .table-center-info h4::before {
     content: '';
     display: inline-block;
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
     background: linear-gradient(135deg, #e74c3c 0%, #c0392b 50%, #a93226 100%);
-    border: 2px solid #fff;
+    border: 3px solid #fff;
     border-radius: 50%;
     box-shadow:
-        inset 0 2px 4px rgba(255, 255, 255, 0.3),
-        inset 0 -2px 4px rgba(0, 0, 0, 0.3),
-        0 2px 4px rgba(0, 0, 0, 0.5);
+        inset 0 3px 6px rgba(255, 255, 255, 0.4),
+        inset 0 -3px 6px rgba(0, 0, 0, 0.3),
+        0 3px 6px rgba(0, 0, 0, 0.5),
+        0 0 0 2px rgba(255, 215, 0, 0.3);
+    position: relative;
 }
 
 .table-center-info div {
-    font-size: 0.8em;
-    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.85em;
+    color: rgba(255, 255, 255, 0.7);
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 2px;
+    font-weight: 500;
 }
 
 .card-placeholder {
     width: 60px;
     height: 84px;
-    border: 2px dashed rgba(255, 255, 255, 0.2);
-    border-radius: 6px;
+    border: 2px dashed rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
     margin: 2px;
+    background: rgba(0, 0, 0, 0.2);
 }
 
-/* Player Positioning Container (Invisible layer on top of table) */
+/* Player Positioning Container */
 .seats-layer {
     position: absolute;
     top: 0;
@@ -104,32 +181,30 @@
     width: 100%;
     height: 100%;
     pointer-events: none;
-    /* Let clicks pass through to table if needed */
 }
 
 .seat {
     position: absolute;
     pointer-events: auto;
-    /* Centered on its coordinate */
     transform: translate(-50%, -50%);
     width: 140px;
     text-align: center;
+    transition: transform 0.3s ease;
 }
 
-/* Specific Seat Positions (Percentage based for responsiveness) */
-/* Assuming 6 max */
+/* Specific Seat Positions */
 .seat-0 {
     top: 85%;
     left: 50%;
 }
 
-/* Hero (Bottom Center) */
+/* Hero (Bottom) */
 .seat-1 {
     top: 60%;
     left: 15%;
 }
 
-/* Bottom Left */
+/* Left */
 .seat-2 {
     top: 25%;
     left: 15%;
@@ -141,7 +216,7 @@
     left: 50%;
 }
 
-/* Top Center */
+/* Top */
 .seat-4 {
     top: 25%;
     left: 85%;
@@ -153,58 +228,65 @@
     left: 85%;
 }
 
-/* Bottom Right */
+/* Right */
 
-/* Message Overlay */
+/* Hand Result Overlay */
 .hand-result-overlay {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -150%);
-    background-color: rgba(0, 0, 0, 0.8);
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.9), rgba(20, 20, 20, 0.95));
     color: var(--accent-gold);
-    padding: 10px 20px;
-    border-radius: 10px;
-    border: 1px solid var(--accent-gold);
+    padding: 15px 30px;
+    border-radius: 15px;
+    border: 2px solid var(--accent-gold);
     z-index: 100;
-    animation: fadeIn 0.5s;
+    animation: winnerReveal 0.5s ease-out;
     font-weight: bold;
+    font-size: 1.2em;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    box-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
 }
 
-@keyframes fadeIn {
+@keyframes winnerReveal {
     from {
         opacity: 0;
+        transform: translate(-50%, -150%) scale(0.8);
     }
 
     to {
         opacity: 1;
+        transform: translate(-50%, -150%) scale(1);
     }
 }
 
-/* AI Thinking Indicator */
+/* AI Thinking Indicator - Enhanced */
 .ai-thinking-indicator {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-top: 8px;
-    padding: 8px 16px;
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(59, 130, 246, 0.2));
-    border-radius: 20px;
-    border: 1px solid rgba(139, 92, 246, 0.4);
-    animation: pulse 2s ease-in-out infinite;
+    gap: 12px;
+    margin-top: 10px;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(59, 130, 246, 0.25));
+    border-radius: 25px;
+    border: 1px solid rgba(139, 92, 246, 0.5);
+    animation: thinkingPulse 2s ease-in-out infinite;
+    backdrop-filter: blur(5px);
 }
 
 .thinking-dots {
     display: flex;
-    gap: 4px;
+    gap: 5px;
 }
 
 .thinking-dots span {
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
     background: linear-gradient(135deg, #8b5cf6, #3b82f6);
     border-radius: 50%;
-    animation: bounce 1.4s ease-in-out infinite;
+    animation: dotBounce 1.4s ease-in-out infinite;
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
 }
 
 .thinking-dots span:nth-child(1) {
@@ -220,13 +302,13 @@
 }
 
 .thinking-text {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 0.85em;
-    font-weight: 500;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 0.9em;
+    font-weight: 600;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
-@keyframes bounce {
+@keyframes dotBounce {
 
     0%,
     80%,
@@ -236,28 +318,26 @@
     }
 
     40% {
-        transform: translateY(-6px);
+        transform: translateY(-8px);
         opacity: 1;
     }
 }
 
-@keyframes pulse {
+@keyframes thinkingPulse {
 
     0%,
     100% {
-        box-shadow: 0 0 5px rgba(139, 92, 246, 0.3);
+        box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
     }
 
     50% {
-        box-shadow: 0 0 15px rgba(139, 92, 246, 0.6);
+        box-shadow: 0 0 25px rgba(139, 92, 246, 0.6);
     }
 }
 
 /* ========================================
-   POKER TABLE MOBILE RESPONSIVE STYLES
+   TABLET RESPONSIVE
    ======================================== */
-
-/* Tablet screens */
 @media screen and (max-width: 1024px) {
     .poker-table-container {
         height: 500px;
@@ -267,8 +347,16 @@
     .poker-felt {
         width: 85%;
         height: 65%;
-        border-width: 12px;
+        border-width: 14px;
         border-radius: 150px;
+    }
+
+    .poker-felt::before {
+        top: -14px;
+        left: -14px;
+        right: -14px;
+        bottom: -14px;
+        border-radius: 160px;
     }
 
     .seat {
@@ -280,35 +368,43 @@
     }
 
     .table-center-info {
-        padding: 10px 18px;
+        padding: 10px 20px;
     }
 
     .table-center-info h4 {
-        font-size: 1.2em;
+        font-size: 1.3em;
     }
 }
 
-/* Mobile phones */
+/* ========================================
+   MOBILE RESPONSIVE
+   ======================================== */
 @media screen and (max-width: 768px) {
     .poker-table-container {
-        height: 400px;
-        max-width: 100%;
+        height: 380px;
         padding: 10px;
-        box-sizing: border-box;
     }
 
     .poker-felt {
         width: 95%;
-        height: 60%;
-        border-width: 8px;
+        height: 58%;
+        border-width: 10px;
         border-radius: 100px;
-        padding: 10px;
+    }
+
+    .poker-felt::before {
+        top: -10px;
+        left: -10px;
+        right: -10px;
+        bottom: -10px;
+        border-radius: 105px;
     }
 
     .community-cards-area {
         gap: 4px;
         margin-bottom: 10px;
-        min-height: 70px;
+        min-height: 65px;
+        padding: 10px 15px;
     }
 
     .card-placeholder {
@@ -317,27 +413,27 @@
     }
 
     .table-center-info {
-        padding: 8px 14px;
-        border-radius: 20px;
+        padding: 8px 16px;
+        border-radius: 25px;
     }
 
     .table-center-info h4 {
-        font-size: 1em;
-        gap: 6px;
+        font-size: 1.1em;
+        gap: 8px;
     }
 
     .table-center-info h4::before {
-        width: 18px;
-        height: 18px;
+        width: 20px;
+        height: 20px;
     }
 
     .table-center-info div {
         font-size: 0.7em;
+        letter-spacing: 1px;
     }
 
-    /* Seat adjustments for mobile - tighter positioning */
     .seat {
-        width: 90px;
+        width: 85px;
     }
 
     .seat-0 {
@@ -347,12 +443,12 @@
 
     .seat-1 {
         top: 65%;
-        left: 12%;
+        left: 10%;
     }
 
     .seat-2 {
-        top: 22%;
-        left: 12%;
+        top: 20%;
+        left: 10%;
     }
 
     .seat-3 {
@@ -361,80 +457,90 @@
     }
 
     .seat-4 {
-        top: 22%;
-        left: 88%;
+        top: 20%;
+        left: 90%;
     }
 
     .seat-5 {
         top: 65%;
-        left: 88%;
+        left: 90%;
     }
 
     .hand-result-overlay {
-        padding: 8px 14px;
-        font-size: 0.9em;
-        border-radius: 8px;
+        padding: 10px 18px;
+        font-size: 1em;
+        border-radius: 10px;
     }
 
     .ai-thinking-indicator {
-        padding: 6px 12px;
-        border-radius: 15px;
-        margin-top: 5px;
+        padding: 6px 14px;
+        border-radius: 18px;
+        gap: 8px;
     }
 
     .thinking-dots span {
-        width: 6px;
-        height: 6px;
+        width: 7px;
+        height: 7px;
     }
 
     .thinking-text {
-        font-size: 0.75em;
+        font-size: 0.8em;
     }
 }
 
-/* Small mobile phones */
+/* ========================================
+   SMALL MOBILE
+   ======================================== */
 @media screen and (max-width: 480px) {
     .poker-table-container {
-        height: 350px;
+        height: 320px;
     }
 
     .poker-felt {
         width: 98%;
-        height: 55%;
-        border-width: 6px;
-        border-radius: 80px;
+        height: 52%;
+        border-width: 8px;
+        border-radius: 70px;
+    }
+
+    .poker-felt::before {
+        top: -8px;
+        left: -8px;
+        right: -8px;
+        bottom: -8px;
+        border-radius: 75px;
     }
 
     .community-cards-area {
         gap: 2px;
-        min-height: 60px;
+        min-height: 55px;
+        padding: 8px 10px;
     }
 
     .table-center-info {
-        padding: 6px 10px;
+        padding: 6px 12px;
     }
 
     .table-center-info h4 {
-        font-size: 0.9em;
+        font-size: 0.95em;
     }
 
     .seat {
-        width: 75px;
+        width: 70px;
     }
 
-    /* Tighter seat positions for very small screens */
     .seat-0 {
         top: 90%;
     }
 
     .seat-1 {
         top: 68%;
-        left: 8%;
+        left: 6%;
     }
 
     .seat-2 {
-        top: 20%;
-        left: 8%;
+        top: 18%;
+        left: 6%;
     }
 
     .seat-3 {
@@ -442,12 +548,12 @@
     }
 
     .seat-4 {
-        top: 20%;
-        left: 92%;
+        top: 18%;
+        left: 94%;
     }
 
     .seat-5 {
         top: 68%;
-        left: 92%;
+        left: 94%;
     }
 }
