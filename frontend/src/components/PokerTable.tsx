@@ -42,6 +42,9 @@ const PokerTable: React.FC<PokerTableProps> = ({ gameState, humanPlayerIndex, is
             }
         }
 
+        // Check if player has folded from the server's tracking
+        const isFolded = gameState.players_folded?.[playerIndex] ?? false;
+
         return {
             index: playerIndex,
             name: playerName,
@@ -51,6 +54,7 @@ const PokerTable: React.FC<PokerTableProps> = ({ gameState, humanPlayerIndex, is
             isActor: isActor,
             isDealer: gameState.button_index === playerIndex,
             lastAction: lastActionString, // Simplified, App.tsx might manage a more detailed log
+            isFolded: isFolded,
             payoff: gameState.payoffs ? gameState.payoffs[playerIndex] : undefined,
         };
     };

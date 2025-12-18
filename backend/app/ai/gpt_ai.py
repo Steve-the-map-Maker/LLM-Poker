@@ -93,20 +93,20 @@ class GPTAI(AIPlayer):
         action_type_str = parts[0] if parts else "FOLD"
         
         if action_type_str == "FOLD": 
-            return PlayerActionRequest(action_type="fold")
+            return PlayerActionRequest(action_type="fold", reasoning=llm_response_text)
         elif action_type_str == "CHECK": 
-            return PlayerActionRequest(action_type="check")
+            return PlayerActionRequest(action_type="check", reasoning=llm_response_text)
         elif action_type_str == "CALL":
-            return PlayerActionRequest(action_type="call")
+            return PlayerActionRequest(action_type="call", reasoning=llm_response_text)
         elif action_type_str == "RAISE_TO" and len(parts) > 1:
             try:
                 amount = int(parts[1])
-                return PlayerActionRequest(action_type="raise", amount=amount)
+                return PlayerActionRequest(action_type="raise", amount=amount, reasoning=llm_response_text)
             except ValueError:
                 self.last_error = f"Parse error: Invalid raise amount from {player_name}"
                 print(f"LLM {player_name} response parsing error (invalid raise amount): {llm_response_text}")
-                return PlayerActionRequest(action_type="fold")
+                return PlayerActionRequest(action_type="fold", reasoning=llm_response_text)
         else:
             self.last_error = f"Parse error: Unknown action '{action_type_str}' from {player_name}"
             print(f"LLM {player_name} response parsing error (unknown action): {llm_response_text}")
-            return PlayerActionRequest(action_type="fold")
+            return PlayerActionRequest(action_type="fold", reasoning=llm_response_text)

@@ -33,7 +33,9 @@ LLM Poker Arena is a modern web application that bridges the gap between traditi
 
 ## Local Development
 
-If you wish to run this project locally:
+For the fastest way to get started, see the **[QUICKSTART.md](./QUICKSTART.md)** guide.
+
+If you wish to run this project manually:
 
 1.  **Clone the repository**:
     ```bash

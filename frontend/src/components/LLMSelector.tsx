@@ -8,30 +8,24 @@ interface LLMSelectorProps {
 
 const LLMSelector: React.FC<LLMSelectorProps> = ({ onStartGame, isLoading }) => {
     // Defines the AI type for each player seat
-    const [playerTypes, setPlayerTypes] = useState<string[]>(["dummy", "dummy"]);
-    const [geminiModels, setGeminiModels] = useState<string[]>(["gemini-2.5-flash", "gemini-2.5-flash"]); // Default: stable 2.5 for production
+    const [playerTypes, setPlayerTypes] = useState<string[]>(["human", "gemini"]);
+    const [geminiModels, setGeminiModels] = useState<string[]>(["gemini-3-flash-preview", "gemini-3-flash-preview"]); // Default: Gemini 3 Flash Preview
     const [stackSize, setStackSize] = useState<number>(10000);
     const [bigBlind, setBigBlind] = useState<number>(100);
 
-    const playerOptions = ["human", "dummy", "gemini"]; // GPT temporarily disabled
+    const playerOptions = ["human", "gemini"];
     const geminiModelOptions = [
-        // Gemini 3.0 (Newest!)
-        "gemini-3-pro-preview",
-        // Gemini 2.5 (Latest stable)
-        "gemini-2.5-pro",
+        // Gemini 3 Flash (Newest!)
+        "gemini-3-flash-preview",
+        // Gemini 2.5 Flash
         "gemini-2.5-flash",
         "gemini-2.5-flash-lite",
-        // Gemini 2.0 Flash variants
+        // Gemini 2.0 Flash
         "gemini-2.0-flash",
-        "gemini-2.0-flash-exp",
         "gemini-2.0-flash-lite",
-        // Experimental
-        "gemini-exp-1206"
+        // Gemini 1.5 Flash
+        "gemini-1.5-flash"
     ];
-    const gptModelOptions = [
-        "gpt-3.5-turbo"
-    ];
-    const [gptModels, setGptModels] = useState<string[]>(["gpt-3.5-turbo", "gpt-3.5-turbo"]);
 
     // Custom AI prompts for each player
     const DEFAULT_AI_PROMPT = `Style: Aggressive and confident
@@ -42,9 +36,8 @@ Strategy: Mix up your play, occasionally slow-play strong hands`;
 
     const handleAddPlayer = () => {
         if (playerTypes.length < 6) {
-            setPlayerTypes([...playerTypes, "dummy"]);
-            setGeminiModels([...geminiModels, "gemini-2.5-flash"]);  // Stable 2.5 for production
-            setGptModels([...gptModels, "gpt-3.5-turbo"]);
+            setPlayerTypes([...playerTypes, "gemini"]);
+            setGeminiModels([...geminiModels, "gemini-3-flash-preview"]);
             setCustomPrompts([...customPrompts, DEFAULT_AI_PROMPT]);
             setShowAdvanced([...showAdvanced, false]);
         }
@@ -59,10 +52,6 @@ Strategy: Mix up your play, occasionally slow-play strong hands`;
             const newModels = [...geminiModels];
             newModels.splice(index, 1);
             setGeminiModels(newModels);
-
-            const newGptModels = [...gptModels];
-            newGptModels.splice(index, 1);
-            setGptModels(newGptModels);
 
             const newPrompts = [...customPrompts];
             newPrompts.splice(index, 1);
@@ -86,17 +75,9 @@ Strategy: Mix up your play, occasionally slow-play strong hands`;
         setGeminiModels(newModels);
     };
 
-    const handleGptModelChange = (index: number, newModel: string) => {
-        const newModels = [...gptModels];
-        newModels[index] = newModel;
-        setGptModels(newModels);
-    };
-
     // Fun AI name generator
     const aiNames = {
-        dummy: ["DumbBot", "RandomRick", "ChaosCarl", "LuckyLarry", "WildCard"],
         gemini: ["GeminiPro", "StarDust", "CosmicAce", "NebulaKing", "AstroBluffer"],
-        gpt: ["GPT-Shark", "DeepThink", "TokenMaster", "PromptPro", "NeuralNate"],
         human: null // Humans name themselves
     };
 
@@ -127,8 +108,7 @@ Strategy: Mix up your play, occasionally slow-play strong hands`;
             ai_type: type,
             stack: stackSize,
             gemini_model: type === 'gemini' ? geminiModels[index] : undefined,
-            gpt_model: type === 'gpt' ? gptModels[index] : undefined,
-            custom_prompt: (type === 'gemini' || type === 'gpt') ? customPrompts[index] : undefined
+            custom_prompt: type === 'gemini' ? customPrompts[index] : undefined
         }));
 
         const blinds = [Math.floor(bigBlind / 2), bigBlind];
@@ -194,20 +174,6 @@ Strategy: Mix up your play, occasionally slow-play strong hands`;
                                 ))}
                             </select>
                         )}
-                        {type === 'gpt' && (
-                            <select
-                                value={gptModels[index]}
-                                onChange={(e) => handleGptModelChange(index, e.target.value)}
-                                disabled={isLoading}
-                                style={{ padding: '5px', background: '#333', color: '#2196F3', border: '1px solid #2196F3', borderRadius: '4px' }}
-                            >
-                                {gptModelOptions.map(model => (
-                                    <option key={model} value={model}>
-                                        {model}
-                                    </option>
-                                ))}
-                            </select>
-                        )}
                         {playerTypes.length > 2 && (
                             <button
                                 onClick={() => handleRemovePlayer(index)}
@@ -217,7 +183,7 @@ Strategy: Mix up your play, occasionally slow-play strong hands`;
                                 Remove
                             </button>
                         )}
-                        {(type === 'gemini' || type === 'gpt') && (
+                        {type === 'gemini' && (
                             <button
                                 onClick={() => toggleAdvanced(index)}
                                 style={{
@@ -230,7 +196,7 @@ Strategy: Mix up your play, occasionally slow-play strong hands`;
                                 {showAdvanced[index] ? '▲ Hide' : '⚙️ Customize AI'}
                             </button>
                         )}
-                        {showAdvanced[index] && (type === 'gemini' || type === 'gpt') && (
+                        {showAdvanced[index] && type === 'gemini' && (
                             <div style={{
                                 width: '100%',
                                 marginTop: '10px',

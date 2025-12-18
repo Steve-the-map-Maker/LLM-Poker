@@ -35,6 +35,7 @@ export interface GameStateResponse {
     board_cards: string[];
     player_hole_cards?: Record<number, string[]> | null; // Keyed by player_index
     player_names?: string[] | null; // Actual player names from game setup
+    players_folded?: boolean[] | null; // True if player has folded
     payoffs?: number[] | null;
     available_actions?: string[] | null; // e.g. ["fold", "check_or_call", "complete_bet_or_raise_to"]
     checking_or_calling_amount?: number | null;
@@ -55,5 +56,6 @@ export interface PlayerState {
     isActor: boolean; // Is it this player's turn?
     isDealer: boolean; // Is this player the dealer?
     lastAction?: string; // Description of the last action, e.g., "bets 100", "folds"
+    isFolded?: boolean; // True if this player has folded
     payoff?: number; // Optional: what they won/lost in the hand if it's over
 }

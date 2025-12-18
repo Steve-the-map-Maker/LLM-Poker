@@ -6,10 +6,11 @@ class PlayerActionRequest(BaseModel):
     player_id: Optional[str] = None  # For human player identification
     action_type: str = Field(..., pattern="^(fold|call|check|raise|bet)$")  # Validate action types
     amount: Optional[int] = Field(None, ge=0)  # Amount must be >= 0 if provided
+    reasoning: Optional[str] = Field(None, max_length=500)  # AI's raw response/trash talk for chat
 
 class PlayerConfig(BaseModel):
     name: Optional[str] = Field(None, max_length=50)  # Limit name length
-    ai_type: str = Field(..., pattern="^(human|dummy|gpt|gemini)$")  # Validate AI types
+    ai_type: str = Field(..., pattern="^(human|gemini)$")  # Validate AI types
     stack: Optional[int] = Field(None, ge=100, le=10000000)  # Stack between 100 and 10M
     gemini_model: Optional[str] = Field(None, max_length=100)
     gpt_model: Optional[str] = Field(None, max_length=100)
@@ -65,6 +66,7 @@ class GameStateResponse(BaseModel):
     board_cards: List[str]
     player_hole_cards: Optional[Dict[int, List[str]]] = None # Keyed by player_index
     player_names: Optional[List[str]] = None  # Actual player names from game setup
+    players_folded: Optional[List[bool]] = None  # True if player has folded
     payoffs: Optional[List[int]] = None
     available_actions: Optional[List[str]] = None # e.g. ["fold", "check_or_call", "complete_bet_or_raise_to"]
     checking_or_calling_amount: Optional[int] = None

@@ -4,6 +4,7 @@ import PokerTable from './components/PokerTable';
 import GameControls from './components/GameControls';
 import ActionControls from './components/ActionControls';
 import ChatPanel, { ChatMessage } from './components/ChatPanel';
+import LoadingModal from './components/LoadingModal';
 import { startGameApi, advanceAiTurnApi, playerActionApi, startNextHandApi } from './services/gameApi';
 import { GameStateResponse, PlayerActionRequest, PlayerConfig } from './types/gameTypes';
 import './App.css';
@@ -17,6 +18,27 @@ const App: React.FC = () => {
     const [autoPlay, setAutoPlay] = useState<boolean>(false);
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
     const [messageId, setMessageId] = useState<number>(0);
+    const [showLoadingModal, setShowLoadingModal] = useState<boolean>(false);
+    const [backendReady, setBackendReady] = useState<boolean>(false);
+
+    // Pre-warm backend on page load
+    useEffect(() => {
+        const warmupBackend = async () => {
+            try {
+                const API_BASE = process.env.REACT_APP_API_URL?.replace('/api/v1/game', '') || 'http://localhost:8000';
+                const response = await fetch(`${API_BASE}/health`);
+                if (response.ok) {
+                    setBackendReady(true);
+                    console.log('Backend warmed up successfully');
+                }
+            } catch (error) {
+                console.log('Backend warming up...');
+                // Retry after 2 seconds
+                setTimeout(warmupBackend, 2000);
+            }
+        };
+        warmupBackend();
+    }, []);
 
     // Auto-play Effect
     useEffect(() => {
@@ -51,6 +73,7 @@ const App: React.FC = () => {
 
     const handleStartGame = async (players: PlayerConfig[], blinds: number[]) => {
         setIsLoading(true);
+        setShowLoadingModal(true);
         setError(null);
         setAutoPlay(false); // Reset auto-play on new game
         try {
@@ -71,6 +94,7 @@ const App: React.FC = () => {
             console.error(err);
         }
         setIsLoading(false);
+        setShowLoadingModal(false);
     };
 
     const handlePlayerAction = async (actionType: string, amount?: number) => {
@@ -156,36 +180,31 @@ const App: React.FC = () => {
         setChatMessages(prev => [...prev, humanMessage]);
         setMessageId(prev => prev + 1);
 
-        // TODO: Call backend API to send message and get AI responses
-        // For now, we'll simulate AI responses locally
-        // In production, this would call an endpoint like /api/v1/game/{gameId}/chat
+        // Call backend API to get AI response to chat
+        try {
+            const response = await fetch(`http://localhost:8000/api/v1/game/${gameId}/chat`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message })
+            });
 
-        // Simulate AI response after a short delay
-        setTimeout(() => {
-            const aiPlayerIndex = Math.floor(Math.random() * (gameState.stacks?.length || 2));
-            const aiNames = ['GeminiPro', 'StarDust', 'CosmicAce', 'NebulaKing', 'AstroBluffer', 'DumbBot'];
-            const aiName = aiNames[aiPlayerIndex] || `AI ${aiPlayerIndex + 1}`;
-
-            const responses = [
-                "Bring it on! 🎯",
-                "Talk is cheap, chips are what matter 💰",
-                "Your trash talk won't save you from my calculations 🤖",
-                "I've analyzed 10,000 hands. You've got nothing 📊",
-                "Nice try, but I don't tilt 😎",
-                "All in on confidence, fold on skill? 🃏",
-                "Keep talking while I take your chips 💸"
-            ];
-
-            const aiResponse: ChatMessage = {
-                id: messageId + 1,
-                sender: aiName,
-                message: responses[Math.floor(Math.random() * responses.length)],
-                timestamp: new Date(),
-                type: 'ai'
-            };
-            setChatMessages(prev => [...prev, aiResponse]);
-            setMessageId(prev => prev + 2);
-        }, 1000 + Math.random() * 2000); // Random delay 1-3 seconds
+            if (response.ok) {
+                const data = await response.json();
+                if (data.ai_response) {
+                    const aiResponse: ChatMessage = {
+                        id: messageId + 1,
+                        sender: data.ai_name || 'AI',
+                        message: data.ai_response,
+                        timestamp: new Date(),
+                        type: 'ai'
+                    };
+                    setChatMessages(prev => [...prev, aiResponse]);
+                    setMessageId(prev => prev + 2);
+                }
+            }
+        } catch (error) {
+            console.error('Chat API error:', error);
+        }
     };
 
     const isHumanTurn = gameState?.status === true && gameState.actor_index === humanPlayerIndex && humanPlayerIndex !== null;
@@ -197,23 +216,43 @@ const App: React.FC = () => {
         const getPlayerName = (playerIndex: number | undefined): string => {
             if (playerIndex === undefined) return 'AI';
             if (playerIndex === humanPlayerIndex) return 'You';
-            // AI names match by player index (consistent with LLMSelector)
+            // Use actual player names from game state, or fallback to defaults
+            if (gameState?.player_names && playerIndex < gameState.player_names.length) {
+                return gameState.player_names[playerIndex];
+            }
             const aiNamesByIndex = ['GeminiPro', 'StarDust', 'CosmicAce', 'NebulaKing', 'AstroBluffer', 'DumbBot'];
             return aiNamesByIndex[playerIndex] || `AI ${playerIndex + 1}`;
         };
 
+        // Helper to clean action keywords from AI message
+        const cleanAiMessage = (msg: string): string => {
+            if (!msg) return msg;
+            // Remove action keywords at the end (FOLD, CHECK, CALL, RAISE_TO XXX)
+            return msg
+                .replace(/\s*(FOLD|CHECK|CALL|RAISE_TO\s*\d+)\s*$/i, '')
+                .trim();
+        };
+
         if (gameState?.ai_message && gameState?.last_action_details) {
             const aiPlayerIndex = gameState.last_action_details.player_index;
+            // Skip if this is the human player
+            if (aiPlayerIndex === humanPlayerIndex) return;
+
             const aiName = getPlayerName(aiPlayerIndex);
-            const newMessage: ChatMessage = {
-                id: messageId,
-                sender: aiName,
-                message: gameState.ai_message,
-                timestamp: new Date(),
-                type: 'ai'
-            };
-            setChatMessages(prev => [...prev, newMessage]);
-            setMessageId(prev => prev + 1);
+            const cleanedMessage = cleanAiMessage(gameState.ai_message);
+
+            // Only add if there's actual content after cleaning
+            if (cleanedMessage && cleanedMessage.length > 3) {
+                const newMessage: ChatMessage = {
+                    id: messageId,
+                    sender: aiName,
+                    message: cleanedMessage,
+                    timestamp: new Date(),
+                    type: 'ai'
+                };
+                setChatMessages(prev => [...prev, newMessage]);
+                setMessageId(prev => prev + 1);
+            }
         }
         // Add action messages for visibility
         if (gameState?.last_action_details) {
@@ -237,9 +276,24 @@ const App: React.FC = () => {
 
     return (
         <div className="App">
+            {/* Loading Modal */}
+            <LoadingModal
+                isVisible={showLoadingModal}
+                message={backendReady ? "Starting game..." : "Waking up the server..."}
+            />
+
             {!gameId && (
                 <header className="App-header">
                     <h1>LLM Poker Arena</h1>
+                    {!backendReady && (
+                        <p style={{
+                            color: '#ffa726',
+                            fontSize: '0.9rem',
+                            animation: 'pulse 1.5s infinite'
+                        }}>
+                            ⏳ Connecting to server...
+                        </p>
+                    )}
                 </header>
             )}
             <main>

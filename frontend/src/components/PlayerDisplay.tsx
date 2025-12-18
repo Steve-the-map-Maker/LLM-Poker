@@ -15,7 +15,8 @@ const PlayerDisplay: React.FC<PlayerDisplayProps> = ({ player, isDealer, showCar
     }
 
     const isWinner = player.payoff !== undefined && player.payoff > 0;
-    const isFolded = player.lastAction?.toLowerCase().includes('fold');
+    // Use the isFolded prop from the server tracking, fallback to lastAction parsing for backwards compatibility
+    const isFolded = player.isFolded ?? player.lastAction?.toLowerCase().includes('fold');
 
     // Determine Cards to Display
     let cardsToRender: React.ReactNode = null;

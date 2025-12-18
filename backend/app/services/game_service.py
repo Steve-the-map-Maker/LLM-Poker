@@ -78,6 +78,20 @@ class GameService:
                 if hole_cards_for_player_i:
                     player_hole_cards[i] = [card_to_str(card) for card in hole_cards_for_player_i]
 
+        # Track which players have folded
+        # PokerKit's statuses list: True = still active, False = folded
+        players_folded: List[bool] = []
+        if hasattr(pk_state, 'statuses') and pk_state.statuses:
+            for i in range(pk_state.player_count):
+                if i < len(pk_state.statuses):
+                    # status is True if active, so folded = not status
+                    players_folded.append(not pk_state.statuses[i])
+                else:
+                    players_folded.append(False)  # Default: not folded
+        else:
+            # Fallback: no one has folded yet
+            players_folded = [False] * pk_state.player_count
+
         current_round_name = "PRE_FLOP"
         if pk_state.status is False:
             if pk_state.showdown_indices:
@@ -156,6 +170,7 @@ class GameService:
             board_cards=current_board_cards,
             player_hole_cards=player_hole_cards,
             player_names=player_names,
+            players_folded=players_folded,
             payoffs=final_payoffs,
             available_actions=available_actions if game_status else [],
             checking_or_calling_amount=checking_or_calling_amount,
@@ -498,51 +513,18 @@ class GameService:
         if ai_player is not None and hasattr(ai_player, 'last_error') and ai_player.last_error:
             ai_error_message = ai_player.last_error
         
-        # Generate AI reasoning message for chat panel (without revealing cards)
+        # Use AI's actual reasoning/trash talk, or fall back to error message
         ai_action = action_taken_details.get("action", "acted")
-        ai_amount = action_taken_details.get("amount")
-        round_name = response.current_round_name or "the hand"
-        pot_size = response.pot_total
         
-        # If there was an API error, use that as the message
         if ai_error_message:
+            # API error - show the error message
             response.ai_message = ai_error_message
+        elif ai_action_request and ai_action_request.reasoning:
+            # Use the AI's actual response (with personality/trash talk)
+            response.ai_message = ai_action_request.reasoning
         else:
-            reasoning_templates = {
-                "fold": [
-                    f"🤔 Hmm, I'm not feeling confident here. Folding on {round_name}.",
-                    f"🃏 The board doesn't favor me. I'll fold and wait for a better spot.",
-                    f"⚡ I sense strength from my opponent. Folding this one.",
-                ],
-                "check": [
-                    f"👀 Interesting... I'll check and see what develops.",
-                    f"🎯 No need to bet here. Checking on {round_name}.",
-                    f"💭 Let me control the pot size. Check.",
-                ],
-                "check_or_call": [
-                    f"📞 The pot odds look good. Calling ${ai_amount or 'the bet'}.",
-                    f"🤝 I'll stay in the hand. Calling.",
-                    f"💡 Worth seeing another card. Call.",
-                ],
-                "call": [
-                    f"📞 The pot odds look good. Calling.",
-                    f"🤝 I'll stay in the hand. Calling ${ai_amount or ''}.",
-                    f"💡 Worth seeing more. Call.",
-                ],
-                "raise": [
-                    f"🔥 Time to apply pressure! Raising to ${ai_amount}.",
-                    f"💪 I'm feeling good about this. Raise to ${ai_amount}.",
-                    f"🚀 Let's build this pot! Raising to ${ai_amount}.",
-                ],
-                "bet": [
-                    f"🎲 Taking the initiative. Betting ${ai_amount}.",
-                    f"⚡ Time to put chips in. Bet ${ai_amount}.",
-                ]
-            }
-            
-            import random
-            templates = reasoning_templates.get(ai_action, [f"🤖 {ai_action.capitalize()}ing..."])
-            response.ai_message = random.choice(templates)
+            # Minimal fallback for edge cases where no reasoning is available
+            response.ai_message = f"🤖 {ai_action.capitalize()}..."
         
         # Log betting round status
         if pk_state:

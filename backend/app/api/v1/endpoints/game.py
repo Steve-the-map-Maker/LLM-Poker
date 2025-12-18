@@ -141,3 +141,69 @@ async def start_next_hand(
     except Exception as e:
         print(f"Unhandled exception in /next_hand for game {game_id}: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to start next hand: {str(e)}")
+
+from pydantic import BaseModel
+
+class ChatRequest(BaseModel):
+    message: str
+
+class ChatResponse(BaseModel):
+    ai_response: str
+    ai_name: str
+
+@router.post("/{game_id}/chat", response_model=ChatResponse)
+async def chat_with_ai(
+    game_id: str,
+    chat_request: ChatRequest,
+    game_service: GameService = Depends(get_game_service)
+):
+    """
+    Send a chat message and get an AI response.
+    Uses a random AI player from the game to respond.
+    """
+    import random
+    try:
+        import google.generativeai as genai
+        from app.config import settings
+        
+        # Get player names and pick a random AI
+        player_names = game_service.game_player_names.get(game_id, ["AI"])
+        player_identities = game_service.game_player_identities.get(game_id, {})
+        
+        # Find AI players (non-human)
+        ai_players = [(i, name) for i, name in enumerate(player_names) 
+                      if player_identities.get(i) != "human"]
+        
+        if not ai_players:
+            ai_name = "AI"
+        else:
+            _, ai_name = random.choice(ai_players)
+        
+        # Get custom prompt for this AI if available
+        custom_prompts = game_service.game_player_custom_prompts.get(game_id, {})
+        personality = custom_prompts.get(0, "You are a confident, trash-talking poker player.")
+        
+        # Generate response using Gemini
+        if settings.GEMINI_API_KEY:
+            genai.configure(api_key=settings.GEMINI_API_KEY)
+            model = genai.GenerativeModel("gemini-2.0-flash")
+            
+            prompt = f"""You are {ai_name}, a poker AI with this personality: {personality}
+
+The human player just said: "{chat_request.message}"
+
+Respond with a short, witty trash-talk response (1-2 sentences max). Be confident and playful. Don't mention specific cards or game state."""
+            
+            response = await model.generate_content_async(prompt)
+            ai_response = response.text.strip()
+        else:
+            ai_response = "Nice try, but I don't tilt! 😎"
+        
+        return ChatResponse(ai_response=ai_response, ai_name=ai_name)
+        
+    except Exception as e:
+        print(f"Chat error: {e}")
+        return ChatResponse(
+            ai_response="Keep talking while I take your chips! 💸",
+            ai_name="AI"
+        )

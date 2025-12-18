@@ -73,3 +73,32 @@ async def health_check():
         "games": stats
     }
 
+@app.get("/poker-fact")
+async def get_poker_fact():
+    """Generate a fun poker fact using Gemini for loading screen."""
+    try:
+        import google.generativeai as genai
+        from app.config import settings
+        
+        if settings.GEMINI_API_KEY:
+            genai.configure(api_key=settings.GEMINI_API_KEY)
+            model = genai.GenerativeModel("gemini-2.0-flash")
+            response = await model.generate_content_async(
+                "Give me one short, interesting poker fact or strategy tip (1-2 sentences max). Make it fun and engaging! Include an emoji."
+            )
+            return {"fact": response.text.strip()}
+    except Exception as e:
+        logger.warning(f"Failed to generate poker fact: {e}")
+    
+    # Fallback facts if Gemini fails
+    import random
+    fallback_facts = [
+        "The odds of getting a royal flush are about 1 in 650,000! 🎰",
+        "Texas Hold'em became the most popular poker variant after the 2003 WSOP. ♠️",
+        "A 'dead man's hand' is Aces and Eights - what Wild Bill Hickok held when shot. 💀",
+        "Position is power - the dealer button acts last and has the most information! 🎯",
+        "Phil Ivey has won 10 WSOP bracelets, making him one of the greatest ever. 🏆",
+        "The term 'poker face' first appeared in the 1870s. 😐",
+        "Pocket Aces win about 85% of the time heads-up preflop! 🚀"
+    ]
+    return {"fact": random.choice(fallback_facts)}
