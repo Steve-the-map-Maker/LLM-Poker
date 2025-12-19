@@ -261,6 +261,42 @@
     }
 }
 
+.winner-name {
+    font-size: 1.4em;
+    font-weight: 800;
+    color: #ffd700;
+    margin-bottom: 5px;
+}
+
+.winning-hand-name {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: linear-gradient(90deg, rgba(255, 215, 0, 0.2), rgba(255, 215, 0, 0.3), rgba(255, 215, 0, 0.2));
+    padding: 5px 15px;
+    border-radius: 20px;
+    margin-top: 5px;
+}
+
+/* Winner seat glow */
+.winner-seat {
+    animation: winnerSeatPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes winnerSeatPulse {
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+    }
+
+    50% {
+        filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.8));
+    }
+}
+
 /* AI Thinking Indicator - Enhanced */
 .ai-thinking-indicator {
     display: flex;

@@ -5,6 +5,8 @@ interface CardProps {
     cardString?: string; // e.g. "As", "Td", "2h", "5c"
     hidden?: boolean;
     scale?: number; // Optional scaling factor
+    isWinning?: boolean; // True if this card is part of the winning hand
+    isDimmed?: boolean; // True if this card should be dimmed
 }
 
 const getSuitSVG = (suit: string) => {
@@ -37,10 +39,10 @@ const getSuitSVG = (suit: string) => {
     }
 };
 
-const Card: React.FC<CardProps> = ({ cardString, hidden, scale = 1 }) => {
+const Card: React.FC<CardProps> = ({ cardString, hidden, scale = 1, isWinning = false, isDimmed = false }) => {
     if (hidden) {
         return (
-            <div className="poker-card hidden" style={{ transform: `scale(${scale})`, transformOrigin: 'center center' }}>
+            <div className={`poker-card hidden ${isDimmed ? 'dimmed' : ''}`} style={{ transform: `scale(${scale})`, transformOrigin: 'center center' }}>
                 <div className="card-pattern"></div>
             </div>
         );
@@ -66,7 +68,10 @@ const Card: React.FC<CardProps> = ({ cardString, hidden, scale = 1 }) => {
     const displayRank = rank === 'T' ? '10' : rank.toUpperCase();
 
     return (
-        <div className={`poker-card ${colorClass}`} style={{ transform: `scale(${scale})`, transformOrigin: 'center center' }}>
+        <div
+            className={`poker-card ${colorClass} ${isWinning ? 'winner' : ''} ${isDimmed ? 'dimmed' : ''}`}
+            style={{ transform: `scale(${scale})`, transformOrigin: 'center center' }}
+        >
             <div className="card-top-left">
                 <span className="rank-text">{displayRank}</span>
                 <div className="suit-icon">{suitSVG}</div>

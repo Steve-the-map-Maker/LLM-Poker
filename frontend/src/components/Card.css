@@ -86,6 +86,15 @@
     0 0 40px rgba(255, 215, 0, 0.3),
     0 4px 12px rgba(0, 0, 0, 0.2);
   animation: cardWinPulse 1.5s ease-in-out infinite;
+  z-index: 20;
+}
+
+/* Dimmed card style for non-winners */
+.poker-card.dimmed {
+  opacity: 0.4;
+  filter: grayscale(0.8);
+  transform: scale(0.95);
+  box-shadow: none;
 }
 
 @keyframes cardWinPulse {

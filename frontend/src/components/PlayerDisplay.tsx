@@ -8,9 +8,10 @@ interface PlayerDisplayProps {
     player?: PlayerState;
     isDealer: boolean;
     showCards: boolean;
+    winningCards?: string[] | null; // Cards involved in the winning hand
 }
 
-const PlayerDisplay: React.FC<PlayerDisplayProps> = ({ player, isDealer, showCards }) => {
+const PlayerDisplay: React.FC<PlayerDisplayProps> = ({ player, isDealer, showCards, winningCards }) => {
     if (!player) {
         return <div className="player-display loading">Loading...</div>;
     }
@@ -27,15 +28,20 @@ const PlayerDisplay: React.FC<PlayerDisplayProps> = ({ player, isDealer, showCar
             // Show actual cards
             cardsToRender = (
                 <>
-                    {player.holeCards.map((cardStr, idx) => (
-                        <Card key={idx} cardString={cardStr} scale={0.6} />
-                    ))}
+                    {player.holeCards.map((cardStr, idx) => {
+                        const isWinningCard = winningCards?.includes(cardStr);
+                        // Dim cards if we have a winning hand defined AND this card is not part of it
+                        const isDimmed = !!(winningCards && winningCards.length > 0 && !isWinningCard);
+                        return <Card key={idx} cardString={cardStr} scale={0.6} isWinning={isWinningCard} isDimmed={isDimmed} />;
+                    })}
                 </>
             );
         } else {
             // Show hidden backs (assuming 2 for Hold'em)
             cardsToRender = (
                 <>
+                    {/* Hidden cards can be dimmed if game is over and someone else won, but tricky to know context here.
+                        Usually hidden cards just stay hidden. */}
                     <Card hidden scale={0.6} />
                     <Card hidden scale={0.6} />
                 </>

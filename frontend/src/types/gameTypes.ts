@@ -45,6 +45,10 @@ export interface GameStateResponse {
     last_action_details?: Record<string, any> | null; // Details of the last action taken
     error_message?: string | null;
     ai_message?: string | null; // AI thought/reasoning for chat panel
+    // Showdown data
+    winning_player_index?: number | null; // Index of the winning player
+    winning_hand_name?: string | null; // e.g., "Flush, Ace high"
+    winning_cards?: string[] | null; // The 5-card winning combination
 }
 
 export interface PlayerState {

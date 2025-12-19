@@ -179,8 +179,11 @@ const PokerTable: React.FC<PokerTableProps> = ({ gameState, humanPlayerIndex, is
                     {/* Render up to 5 card slots, filled or placeholder */}
                     {[0, 1, 2, 3, 4].map(idx => {
                         const cardStr = gameState.board_cards[idx];
+                        const isWinningCard = gameState.winning_cards?.includes(cardStr);
+                        // Dim community cards if we have a winner and this card is NOT part of the winning hand
+                        const isDimmed = !!(gameState.winning_cards && gameState.winning_cards.length > 0 && !isWinningCard);
                         if (cardStr) {
-                            return <Card key={idx} cardString={cardStr} />;
+                            return <Card key={idx} cardString={cardStr} isWinning={isWinningCard} isDimmed={isDimmed} />;
                         } else {
                             return <div key={idx} className="card-placeholder" />;
                         }
@@ -197,26 +200,41 @@ const PokerTable: React.FC<PokerTableProps> = ({ gameState, humanPlayerIndex, is
                     const hasCards = !!(gameState.player_hole_cards && gameState.player_hole_cards[player.index]);
                     const isHuman = player.index === humanPlayerIndex;
                     const gameOver = !gameState.status || !!gameState.payoffs;
+                    const isWinner = gameState.winning_player_index === player.index;
 
                     // Human always sees their own cards. AI cards only shown when game over.
                     const shouldShowCards = hasCards && (isHuman || gameOver);
 
                     return (
-                        <div key={player.index} className={`seat seat-${visualSeat}`}>
+                        <div key={player.index} className={`seat seat-${visualSeat} ${isWinner ? 'winner-seat' : ''}`}>
                             <PlayerDisplay
                                 player={player}
                                 isDealer={gameState.button_index === player.index}
                                 showCards={shouldShowCards}
+                                winningCards={gameState.winning_cards}
                             />
                         </div>
                     );
                 })}
             </div>
 
-            {/* Hand Result Overlay */}
+            {/* Hand Result Overlay - Enhanced with winning hand */}
             {(!gameState.status || gameState.payoffs) && (
                 <div className="hand-result-overlay">
-                    {gameStatusMessage}
+                    {gameState.winning_player_index !== null && gameState.winning_player_index !== undefined ? (
+                        <>
+                            <div className="winner-name">
+                                🏆 {playerStates[gameState.winning_player_index]?.name || 'Winner'}
+                            </div>
+                            {gameState.winning_hand_name && (
+                                <div className="winning-hand-name">
+                                    {gameState.winning_hand_name}
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        <div>{gameStatusMessage}</div>
+                    )}
                 </div>
             )}
         </div>

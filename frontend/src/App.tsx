@@ -45,11 +45,11 @@ const App: React.FC = () => {
         let timeoutId: ReturnType<typeof setTimeout>;
 
         if (autoPlay && gameId && gameState && !isLoading && !error) {
-            // Case 1: Game Over -> Start Next Hand (after delay)
+            // Case 1: Hand Over -> STOP auto-play so user can review results
             if (gameState.status === false) {
-                timeoutId = setTimeout(() => {
-                    handleNextHand();
-                }, 2000); // 2 second delay between hands
+                // Pause auto-play when hand ends
+                setAutoPlay(false);
+                return; // Don't auto-advance to next hand
             }
             // Case 2: Game Active -> Play Turn
             else {

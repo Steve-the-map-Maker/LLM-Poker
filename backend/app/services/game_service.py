@@ -1,7 +1,7 @@
 from typing import List, Optional, Tuple, Dict, Any
 from uuid import UUID
 
-from pokerkit import State
+from pokerkit import State, StandardHighHand
 from app.core.poker_game_manager import PokerGameManager
 from app.api.v1.poker_schemas import GameStateResponse, PlayerActionRequest, StartGameRequest
 from app.ai.base_ai import AIPlayer
@@ -65,6 +65,15 @@ class GameService:
                     return str(card)
             except Exception:
                 return "??"
+        
+        def get_hand_name(hand: StandardHighHand) -> str:
+            """Convert a StandardHighHand to a readable name."""
+            try:
+                # PokerKit string representation is "Hand Name (Cards)"
+                # e.g. "One pair (9d7sTdJhJd)"
+                return str(hand).split('(')[0].strip()
+            except Exception:
+                return "Unknown Hand"
         
         current_board_cards = []
         if pk_state.board_cards:
@@ -158,6 +167,55 @@ class GameService:
             elif len(players_with_chips) == 0:
                 game_over_message = "🎲 GAME OVER! It's a draw - everyone is bust!"
 
+        # Evaluate hands at showdown
+        winning_player_index = None
+        winning_hand_name = None
+        winning_cards = None
+        
+        # Determine winner from payoffs first (most reliable)
+        if pk_state.status is False and final_payoffs:
+            # Find player with positive payoff
+            for idx, payoff in enumerate(final_payoffs):
+                if payoff > 0:
+                    winning_player_index = idx
+                    break
+        
+        # If we have a full board (showdown), evaluate the actual hand
+        if pk_state.status is False and len(current_board_cards) >= 5 and winning_player_index is not None:
+            # Showdown - evaluate hands to get hand name
+            try:
+                winner_idx = winning_player_index
+                
+                # Get hole cards for winner
+                if winner_idx in player_hole_cards and player_hole_cards[winner_idx]:
+                    hole_cards = player_hole_cards[winner_idx]
+                    all_cards = hole_cards + current_board_cards
+                    
+                    # Evaluate the best 5-card hand from 7 cards
+                    try:
+                        from itertools import combinations
+                        best_hand = None
+                        best_cards = None
+                        
+                        for five_cards in combinations(all_cards, 5):
+                            try:
+                                # StandardHighHand.from_game expects a single string, not a tuple/list
+                                hand = StandardHighHand.from_game("".join(five_cards))
+                                if best_hand is None or hand > best_hand:
+                                    best_hand = hand
+                                    best_cards = list(five_cards)
+                            except Exception:
+                                continue
+                        
+                        if best_hand is not None:
+                            winning_hand_name = get_hand_name(best_hand)
+                            winning_cards = best_cards
+                    except Exception as e:
+                        print(f"Error evaluating winner's hand: {e}")
+                    
+            except Exception as e:
+                print(f"Error during showdown evaluation: {e}")
+
         return GameStateResponse(
             game_id=game_id,
             status=game_status,
@@ -178,6 +236,9 @@ class GameService:
             max_raise_to_amount=max_raise_to_amount,
             current_round_name="GAME_OVER" if game_over_message else current_round_name,
             error_message=game_over_message,
+            winning_player_index=winning_player_index,
+            winning_hand_name=winning_hand_name,
+            winning_cards=winning_cards,
         )
 
     def create_new_game_instance(

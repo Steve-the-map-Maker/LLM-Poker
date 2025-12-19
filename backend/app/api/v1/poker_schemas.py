@@ -76,3 +76,8 @@ class GameStateResponse(BaseModel):
     last_action_details: Optional[Dict[str, Any]] = None # Details of the last action taken
     error_message: Optional[str] = None
     ai_message: Optional[str] = None  # AI thought/reasoning for chat panel
+    # Showdown data
+    winning_player_index: Optional[int] = None  # Index of the winning player
+    winning_hand_name: Optional[str] = None  # e.g., "Flush, Ace high"
+    winning_cards: Optional[List[str]] = None  # The 5-card winning combination
+
