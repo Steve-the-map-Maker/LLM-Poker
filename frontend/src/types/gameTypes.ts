@@ -10,6 +10,7 @@ export interface PlayerConfig {
     ai_type: string;
     stack?: number;
     gemini_model?: string; // Optional: specific Gemini model version
+    claude_model?: string; // Optional: specific Claude model version
     gpt_model?: string; // Optional: specific GPT model version
     custom_prompt?: string; // Optional: custom AI personality/strategy instructions
 }

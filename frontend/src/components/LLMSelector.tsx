@@ -10,10 +10,11 @@ const LLMSelector: React.FC<LLMSelectorProps> = ({ onStartGame, isLoading }) => 
     // Defines the AI type for each player seat
     const [playerTypes, setPlayerTypes] = useState<string[]>(["human", "gemini"]);
     const [geminiModels, setGeminiModels] = useState<string[]>(["gemini-3-flash-preview", "gemini-3-flash-preview"]); // Default: Gemini 3 Flash Preview
+    const [claudeModels, setClaudeModels] = useState<string[]>(["claude-3-haiku-20240307", "claude-3-haiku-20240307"]); // Default: Claude 3 Haiku
     const [stackSize, setStackSize] = useState<number>(10000);
     const [bigBlind, setBigBlind] = useState<number>(100);
 
-    const playerOptions = ["human", "gemini"];
+    const playerOptions = ["human", "gemini", "claude"];
     const geminiModelOptions = [
         // Gemini 3 Flash (Newest!)
         "gemini-3-flash-preview",
@@ -25,6 +26,11 @@ const LLMSelector: React.FC<LLMSelectorProps> = ({ onStartGame, isLoading }) => 
         "gemini-2.0-flash-lite",
         // Gemini 1.5 Flash
         "gemini-1.5-flash"
+    ];
+    const claudeModelOptions = [
+        "claude-3-haiku-20240307",
+        "claude-3-5-sonnet-latest",
+        "claude-3-opus-20240229"
     ];
 
     // Custom AI prompts for each player
@@ -38,6 +44,7 @@ Strategy: Mix up your play, occasionally slow-play strong hands`;
         if (playerTypes.length < 6) {
             setPlayerTypes([...playerTypes, "gemini"]);
             setGeminiModels([...geminiModels, "gemini-3-flash-preview"]);
+            setClaudeModels([...claudeModels, "claude-3-haiku-20240307"]);
             setCustomPrompts([...customPrompts, DEFAULT_AI_PROMPT]);
             setShowAdvanced([...showAdvanced, false]);
         }
@@ -52,6 +59,10 @@ Strategy: Mix up your play, occasionally slow-play strong hands`;
             const newModels = [...geminiModels];
             newModels.splice(index, 1);
             setGeminiModels(newModels);
+
+            const newClaudeModels = [...claudeModels];
+            newClaudeModels.splice(index, 1);
+            setClaudeModels(newClaudeModels);
 
             const newPrompts = [...customPrompts];
             newPrompts.splice(index, 1);
@@ -75,9 +86,16 @@ Strategy: Mix up your play, occasionally slow-play strong hands`;
         setGeminiModels(newModels);
     };
 
+    const handleClaudeModelChange = (index: number, newModel: string) => {
+        const newModels = [...claudeModels];
+        newModels[index] = newModel;
+        setClaudeModels(newModels);
+    };
+
     // Fun AI name generator
     const aiNames = {
         gemini: ["GeminiPro", "StarDust", "CosmicAce", "NebulaKing", "AstroBluffer"],
+        claude: ["Claude", "AnthropicAce", "HaikuHustler", "SonnetShark", "OpusOne"],
         human: null // Humans name themselves
     };
 
@@ -108,7 +126,8 @@ Strategy: Mix up your play, occasionally slow-play strong hands`;
             ai_type: type,
             stack: stackSize,
             gemini_model: type === 'gemini' ? geminiModels[index] : undefined,
-            custom_prompt: type === 'gemini' ? customPrompts[index] : undefined
+            claude_model: type === 'claude' ? claudeModels[index] : undefined,
+            custom_prompt: (type === 'gemini' || type === 'claude') ? customPrompts[index] : undefined
         }));
 
         const blinds = [Math.floor(bigBlind / 2), bigBlind];
@@ -174,6 +193,20 @@ Strategy: Mix up your play, occasionally slow-play strong hands`;
                                 ))}
                             </select>
                         )}
+                        {type === 'claude' && (
+                            <select
+                                value={claudeModels[index]}
+                                onChange={(e) => handleClaudeModelChange(index, e.target.value)}
+                                disabled={isLoading}
+                                style={{ padding: '5px', background: '#333', color: '#D2691E', border: '1px solid #D2691E', borderRadius: '4px' }}
+                            >
+                                {claudeModelOptions.map(model => (
+                                    <option key={model} value={model}>
+                                        {model}
+                                    </option>
+                                ))}
+                            </select>
+                        )}
                         {playerTypes.length > 2 && (
                             <button
                                 onClick={() => handleRemovePlayer(index)}
@@ -183,7 +216,7 @@ Strategy: Mix up your play, occasionally slow-play strong hands`;
                                 Remove
                             </button>
                         )}
-                        {type === 'gemini' && (
+                        {(type === 'gemini' || type === 'claude') && (
                             <button
                                 onClick={() => toggleAdvanced(index)}
                                 style={{
@@ -196,7 +229,7 @@ Strategy: Mix up your play, occasionally slow-play strong hands`;
                                 {showAdvanced[index] ? '▲ Hide' : '⚙️ Customize AI'}
                             </button>
                         )}
-                        {showAdvanced[index] && type === 'gemini' && (
+                        {showAdvanced[index] && (type === 'gemini' || type === 'claude') && (
                             <div style={{
                                 width: '100%',
                                 marginTop: '10px',

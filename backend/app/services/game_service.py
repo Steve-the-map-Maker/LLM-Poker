@@ -8,6 +8,7 @@ from app.ai.base_ai import AIPlayer
 from app.ai.dummy_ai import DummyAI
 from app.ai.gpt_ai import GPTAI
 from app.ai.gemini_ai import GeminiAI
+from app.ai.claude_ai import ClaudeAI
 
 class GameService:
     """
@@ -23,7 +24,9 @@ class GameService:
         self.ai_constructors: Dict[str, type[AIPlayer]] = {
             "dummy": DummyAI,
             "gpt": GPTAI,
-            "gemini": GeminiAI
+            "gpt": GPTAI,
+            "gemini": GeminiAI,
+            "claude": ClaudeAI
         }
 
     def _get_ai_instance(self, ai_type: str, model_name: str = None, custom_prompt: str = None) -> AIPlayer:
@@ -34,6 +37,10 @@ class GameService:
         
         # For Gemini, pass the model name and custom prompt if provided
         if ai_type.lower() == "gemini":
+            return constructor(model_name=model_name, custom_prompt=custom_prompt)
+        
+        # For Claude, pass the model name and custom prompt if provided
+        if ai_type.lower() == "claude":
             return constructor(model_name=model_name, custom_prompt=custom_prompt)
         
         # For GPT, pass the model name if provided
@@ -276,6 +283,10 @@ class GameService:
                 # Store gemini_model if applicable
                 if p_config.gemini_model:
                     models[idx] = p_config.gemini_model
+                
+                # Store claude_model if applicable
+                if p_config.claude_model:
+                    models[idx] = p_config.claude_model
                 
                 # Store gpt_model if applicable
                 if p_config.gpt_model:

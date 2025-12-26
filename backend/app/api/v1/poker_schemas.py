@@ -10,9 +10,11 @@ class PlayerActionRequest(BaseModel):
 
 class PlayerConfig(BaseModel):
     name: Optional[str] = Field(None, max_length=50)  # Limit name length
-    ai_type: str = Field(..., pattern="^(human|gemini)$")  # Validate AI types
+    ai_type: str = Field(..., pattern="^(human|gemini|gpt|claude|dummy)$")  # Validate AI types
     stack: Optional[int] = Field(None, ge=100, le=10000000)  # Stack between 100 and 10M
+    persona: Optional[str] = Field(None, pattern="^(default|conservative|aggressive|calling_station)$")
     gemini_model: Optional[str] = Field(None, max_length=100)
+    claude_model: Optional[str] = Field(None, max_length=100)
     gpt_model: Optional[str] = Field(None, max_length=100)
     custom_prompt: Optional[str] = Field(None, max_length=500)  # Custom AI personality/strategy
     
