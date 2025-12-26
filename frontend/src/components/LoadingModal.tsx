@@ -15,7 +15,8 @@ const LoadingModal: React.FC<LoadingModalProps> = ({ isVisible, message = "Start
             // Fetch poker fact from backend
             const fetchFact = async () => {
                 try {
-                    const API_BASE = process.env.REACT_APP_API_URL?.replace('/api/v1/game', '') || 'http://localhost:8000';
+                    const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1/game';
+                    const API_BASE = API_URL.replace('/api/v1/game', '');
                     const response = await fetch(`${API_BASE}/poker-fact`);
                     if (response.ok) {
                         const data = await response.json();

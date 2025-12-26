@@ -25,7 +25,9 @@ const App: React.FC = () => {
     useEffect(() => {
         const warmupBackend = async () => {
             try {
-                const API_BASE = process.env.REACT_APP_API_URL?.replace('/api/v1/game', '') || 'http://localhost:8000';
+                // Determine API base from the game API URL or fallback to localhost
+                const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1/game';
+                const API_BASE = API_URL.replace('/api/v1/game', '');
                 const response = await fetch(`${API_BASE}/health`);
                 if (response.ok) {
                     setBackendReady(true);
@@ -182,7 +184,8 @@ const App: React.FC = () => {
 
         // Call backend API to get AI response to chat
         try {
-            const response = await fetch(`http://localhost:8000/api/v1/game/${gameId}/chat`, {
+            const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1/game';
+            const response = await fetch(`${API_URL}/${gameId}/chat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message })

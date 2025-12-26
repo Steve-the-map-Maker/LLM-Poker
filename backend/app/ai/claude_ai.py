@@ -23,13 +23,16 @@ class ClaudeAI(AIPlayer):
         self.custom_prompt = custom_prompt  # User-defined AI personality
         self.last_error: Optional[str] = None  # Track last error for visibility
         if not self.api_key:
-            print("Warning: ANTHROPIC_API_KEY not found. Claude AI will fail.")
+            self.init_error = "Missing ANTHROPIC_API_KEY environment variable"
+            print(f"Warning: {self.init_error}. Claude AI will fail.")
         else:
             try:
                 self.client = anthropic.AsyncAnthropic(api_key=self.api_key)
+                self.init_error = None
                 print(f"ClaudeAI initialized with model: {model_name}")
             except Exception as e:
-                print(f"Error configuring Claude AI: {e}")
+                self.init_error = f"Error configuring Claude AI: {e}"
+                print(self.init_error)
     
     async def get_action(self, pk_state: pokerkit.State, player_index: int, game_id: str, player_name: str) -> PlayerActionRequest:
         # Clear previous error
@@ -59,7 +62,8 @@ class ClaudeAI(AIPlayer):
         for attempt in range(max_retries):
             try:
                 if not self.client:
-                    raise ValueError("Claude client not initialized")
+                    error_msg = self.init_error if hasattr(self, 'init_error') and self.init_error else "Claude client not initialized"
+                    raise ValueError(error_msg)
                 
                 ClaudeAI._last_request_time = time.time()  # Update before call
                 

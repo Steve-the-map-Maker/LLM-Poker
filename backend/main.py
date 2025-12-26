@@ -34,9 +34,10 @@ async def global_exception_handler(request: Request, exc: Exception):
 # CORS Middleware Configuration
 origins = [
     "http://localhost:3000",  # Allow your React frontend
+    "https://poker-frontend-80hx.onrender.com", # Production frontend
 ]
 
-# Add production frontend URL if set
+# Add production frontend URL if set via env var
 if os.getenv("FRONTEND_URL"):
     origins.append(os.getenv("FRONTEND_URL"))
 
