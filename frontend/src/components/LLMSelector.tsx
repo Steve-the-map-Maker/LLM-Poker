@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { PlayerConfig } from '../types/gameTypes';
+import './LLMSelector.css';
 
 interface LLMSelectorProps {
     onStartGame: (players: PlayerConfig[], blinds: number[]) => void;
@@ -9,23 +10,14 @@ interface LLMSelectorProps {
 const LLMSelector: React.FC<LLMSelectorProps> = ({ onStartGame, isLoading }) => {
     // Defines the AI type for each player seat
     const [playerTypes, setPlayerTypes] = useState<string[]>(["human", "gemini"]);
-    const [geminiModels, setGeminiModels] = useState<string[]>(["gemini-3-flash-preview", "gemini-3-flash-preview"]); // Default: Gemini 3 Flash Preview
+    const [geminiModels, setGeminiModels] = useState<string[]>(["gemini-3.1-flash-lite-preview", "gemini-3.1-flash-lite-preview"]); // Default: Gemini 3.1 Flash Lite
     const [claudeModels, setClaudeModels] = useState<string[]>(["claude-3-haiku-20240307", "claude-3-haiku-20240307"]); // Default: Claude 3 Haiku
     const [stackSize, setStackSize] = useState<number>(10000);
     const [bigBlind, setBigBlind] = useState<number>(100);
 
     const playerOptions = ["human", "gemini", "claude"];
     const geminiModelOptions = [
-        // Gemini 3 Flash (Newest!)
-        "gemini-3-flash-preview",
-        // Gemini 2.5 Flash
-        "gemini-2.5-flash",
-        "gemini-2.5-flash-lite",
-        // Gemini 2.0 Flash
-        "gemini-2.0-flash",
-        "gemini-2.0-flash-lite",
-        // Gemini 1.5 Flash
-        "gemini-1.5-flash"
+        "gemini-3.1-flash-lite-preview"
     ];
     const claudeModelOptions = [
         "claude-3-haiku-20240307",
@@ -34,16 +26,14 @@ const LLMSelector: React.FC<LLMSelectorProps> = ({ onStartGame, isLoading }) => 
     ];
 
     // Custom AI prompts for each player
-    const DEFAULT_AI_PROMPT = `Style: Aggressive and confident
-Trash talk: Taunt opponents when you bluff successfully
-Strategy: Mix up your play, occasionally slow-play strong hands`;
+    const DEFAULT_AI_PROMPT = `Style: Aggressive and confident\nTrash talk: Taunt opponents when you bluff successfully\nStrategy: Mix up your play, occasionally slow-play strong hands`;
     const [customPrompts, setCustomPrompts] = useState<string[]>([DEFAULT_AI_PROMPT, DEFAULT_AI_PROMPT]);
     const [showAdvanced, setShowAdvanced] = useState<boolean[]>([false, false]);
 
     const handleAddPlayer = () => {
         if (playerTypes.length < 6) {
             setPlayerTypes([...playerTypes, "gemini"]);
-            setGeminiModels([...geminiModels, "gemini-3-flash-preview"]);
+            setGeminiModels([...geminiModels, "gemini-3.1-flash-lite-preview"]);
             setClaudeModels([...claudeModels, "claude-3-haiku-20240307"]);
             setCustomPrompts([...customPrompts, DEFAULT_AI_PROMPT]);
             setShowAdvanced([...showAdvanced, false]);
@@ -92,18 +82,16 @@ Strategy: Mix up your play, occasionally slow-play strong hands`;
         setClaudeModels(newModels);
     };
 
-    // Fun AI name generator
     const aiNames = {
         gemini: ["GeminiPro", "StarDust", "CosmicAce", "NebulaKing", "AstroBluffer"],
         claude: ["Claude", "AnthropicAce", "HaikuHustler", "SonnetShark", "OpusOne"],
-        human: null // Humans name themselves
+        human: null
     };
 
     const getPlayerName = (type: string, index: number): string => {
         if (type === "human") return `You`;
         const names = aiNames[type as keyof typeof aiNames] || ["Bot"];
         if (!names) return `Player ${index + 1}`;
-        // Pick a name based on index to keep it consistent
         return names[index % names.length];
     };
 
@@ -120,7 +108,6 @@ Strategy: Mix up your play, occasionally slow-play strong hands`;
     };
 
     const handleStart = () => {
-        // Convert strings to PlayerConfig objects with the chosen stack
         const playersConfig: PlayerConfig[] = playerTypes.map((type, index) => ({
             name: getPlayerName(type, index),
             ai_type: type,
@@ -134,155 +121,148 @@ Strategy: Mix up your play, occasionally slow-play strong hands`;
         onStartGame(playersConfig, blinds);
     };
 
-    return (
-        <div className="selector-container">
-            <h2>Game Setup</h2>
+    const getTypeIcon = (type: string) => {
+        if (type === "human") return "🧑‍💻";
+        if (type === "gemini") return "🤖";
+        if (type === "claude") return "🧠";
+        return "👤";
+    };
 
-            {/* Global Settings */}
-            <div className="game-settings" style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
-                <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', marginBottom: '10px' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                        <label style={{ fontSize: '0.9em', marginBottom: '5px' }}>Starting Stack ($)</label>
+    return (
+        <div className="selector-wrapper">
+            <div className="selector-container">
+                <h2>LLM Poker Setup</h2>
+
+                {/* Global Settings */}
+                <div className="game-settings-card">
+                    <div className="setting-group">
+                        <label>Starting Stack ($)</label>
                         <input
+                            className="premium-input"
                             type="number"
                             value={stackSize}
                             onChange={(e) => setStackSize(parseInt(e.target.value) || 0)}
-                            style={{ padding: '8px', width: '100px', borderRadius: '4px', border: '1px solid #444', background: '#222', color: 'white' }}
                         />
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                        <label style={{ fontSize: '0.9em', marginBottom: '5px' }}>Big Blind ($)</label>
+                    <div className="setting-group">
+                        <label>Big Blind ($)</label>
                         <input
+                            className="premium-input"
                             type="number"
                             value={bigBlind}
                             onChange={(e) => setBigBlind(parseInt(e.target.value) || 0)}
-                            style={{ padding: '8px', width: '100px', borderRadius: '4px', border: '1px solid #444', background: '#222', color: 'white' }}
                         />
                     </div>
                 </div>
-            </div>
 
-            <h3>Players</h3>
-            <div className="players-list" style={{ marginBottom: '20px' }}>
-                {playerTypes.map((type, index) => (
-                    <div key={index} className="player-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '10px 0', flexWrap: 'wrap', gap: '10px' }}>
-                        <span style={{ marginRight: '10px', minWidth: '80px' }}>Player {index + 1}: </span>
-                        <select
-                            value={type}
-                            onChange={(e) => handleTypeChange(index, e.target.value)}
-                            disabled={isLoading}
-                            style={{ padding: '5px', marginRight: '10px' }}
-                        >
-                            {playerOptions.map(opt => (
-                                <option key={opt} value={opt}>
-                                    {opt.charAt(0).toUpperCase() + opt.slice(1)}
-                                </option>
-                            ))}
-                        </select>
-                        {type === 'gemini' && (
+                <h3>Table Setup</h3>
+                <div className="players-list">
+                    {playerTypes.map((type, index) => (
+                        <div key={index} className={`player-card ${type}-border`}>
+                            <span className="player-label">
+                                {getTypeIcon(type)} P{index + 1}
+                            </span>
+                            
                             <select
-                                value={geminiModels[index]}
-                                onChange={(e) => handleGeminiModelChange(index, e.target.value)}
+                                className="premium-select"
+                                value={type}
+                                onChange={(e) => handleTypeChange(index, e.target.value)}
                                 disabled={isLoading}
-                                style={{ padding: '5px', background: '#333', color: '#4CAF50', border: '1px solid #4CAF50', borderRadius: '4px' }}
                             >
-                                {geminiModelOptions.map(model => (
-                                    <option key={model} value={model}>
-                                        {model}
+                                {playerOptions.map(opt => (
+                                    <option key={opt} value={opt} disabled={opt === 'claude'}>
+                                        {opt.charAt(0).toUpperCase() + opt.slice(1)} {opt === 'claude' ? '(Disabled)' : ''}
                                     </option>
                                 ))}
                             </select>
-                        )}
-                        {type === 'claude' && (
-                            <select
-                                value={claudeModels[index]}
-                                onChange={(e) => handleClaudeModelChange(index, e.target.value)}
-                                disabled={isLoading}
-                                style={{ padding: '5px', background: '#333', color: '#D2691E', border: '1px solid #D2691E', borderRadius: '4px' }}
-                            >
-                                {claudeModelOptions.map(model => (
-                                    <option key={model} value={model}>
-                                        {model}
-                                    </option>
-                                ))}
-                            </select>
-                        )}
-                        {playerTypes.length > 2 && (
-                            <button
-                                onClick={() => handleRemovePlayer(index)}
-                                disabled={isLoading}
-                                style={{ background: '#ff4444', padding: '5px 10px', fontSize: '0.8em' }}
-                            >
-                                Remove
-                            </button>
-                        )}
-                        {(type === 'gemini' || type === 'claude') && (
-                            <button
-                                onClick={() => toggleAdvanced(index)}
-                                style={{
-                                    background: showAdvanced[index] ? '#666' : '#555',
-                                    padding: '5px 10px',
-                                    fontSize: '0.8em',
-                                    border: '1px solid #777'
-                                }}
-                            >
-                                {showAdvanced[index] ? '▲ Hide' : '⚙️ Customize AI'}
-                            </button>
-                        )}
-                        {showAdvanced[index] && (type === 'gemini' || type === 'claude') && (
-                            <div style={{
-                                width: '100%',
-                                marginTop: '10px',
-                                padding: '10px',
-                                background: 'rgba(255,255,255,0.05)',
-                                borderRadius: '8px',
-                                border: '1px solid #444'
-                            }}>
-                                <label style={{ fontSize: '0.85em', display: 'block', marginBottom: '5px', color: '#aaa' }}>
-                                    AI Personality & Strategy:
-                                </label>
-                                <textarea
-                                    value={customPrompts[index]}
-                                    onChange={(e) => handleCustomPromptChange(index, e.target.value)}
+
+                            {type === 'gemini' && (
+                                <select
+                                    className="premium-select gemini-variant"
+                                    value={geminiModels[index]}
+                                    onChange={(e) => handleGeminiModelChange(index, e.target.value)}
                                     disabled={isLoading}
-                                    maxLength={500}
-                                    rows={4}
-                                    style={{
-                                        width: '100%',
-                                        padding: '8px',
-                                        borderRadius: '4px',
-                                        border: '1px solid #555',
-                                        background: '#222',
-                                        color: '#ddd',
-                                        fontSize: '0.9em',
-                                        resize: 'vertical',
-                                        boxSizing: 'border-box'
-                                    }}
-                                    placeholder="Describe the AI's personality, playing style, and trash talk..."
-                                />
-                                <span style={{ fontSize: '0.75em', color: '#666' }}>
-                                    {customPrompts[index].length}/500 characters
-                                </span>
-                            </div>
-                        )}
-                    </div>
-                ))}
-            </div>
+                                >
+                                    {geminiModelOptions.map(model => (
+                                        <option key={model} value={model}>
+                                            {model}
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
 
-            <div className="controls" style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-                {playerTypes.length < 6 && (
-                    <button onClick={handleAddPlayer} disabled={isLoading} style={{ background: '#2196F3' }}>
-                        + Add Player
+                            {type === 'claude' && (
+                                <select
+                                    className="premium-select claude-variant"
+                                    value={claudeModels[index]}
+                                    onChange={(e) => handleClaudeModelChange(index, e.target.value)}
+                                    disabled={isLoading}
+                                >
+                                    {claudeModelOptions.map(model => (
+                                        <option key={model} value={model}>
+                                            {model}
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
+
+                            {(type === 'gemini' || type === 'claude') && (
+                                <button
+                                    className={`btn btn-toggle ${showAdvanced[index] ? 'active' : ''}`}
+                                    onClick={() => toggleAdvanced(index)}
+                                    disabled={isLoading}
+                                >
+                                    {showAdvanced[index] ? '▲ Hide Settings' : '⚙️ Custom AI'}
+                                </button>
+                            )}
+
+                            {playerTypes.length > 2 && (
+                                <button
+                                    className="btn btn-remove"
+                                    onClick={() => handleRemovePlayer(index)}
+                                    disabled={isLoading}
+                                >
+                                    ✕
+                                </button>
+                            )}
+
+                            {/* Dropdown area for advanced custom settings */}
+                            {showAdvanced[index] && (type === 'gemini' || type === 'claude') && (
+                                <div className="advanced-area">
+                                    <label>AI Personality & Strategy Setup</label>
+                                    <textarea
+                                        className="advanced-textarea"
+                                        value={customPrompts[index]}
+                                        onChange={(e) => handleCustomPromptChange(index, e.target.value)}
+                                        disabled={isLoading}
+                                        maxLength={500}
+                                        rows={4}
+                                        placeholder="Describe the AI's personality, playing style, and trash talk..."
+                                    />
+                                    <span className="char-counter">
+                                        {customPrompts[index].length} / 500 characters
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+
+                <div className="controls">
+                    {playerTypes.length < 6 && (
+                        <button className="btn btn-add" onClick={handleAddPlayer} disabled={isLoading}>
+                            + Add Player
+                        </button>
+                    )}
+                    <button className="btn btn-start" onClick={handleStart} disabled={isLoading}>
+                        {isLoading ? 'Starting...' : '♦ Start Game ♠'}
                     </button>
-                )}
-                <button onClick={handleStart} disabled={isLoading} style={{ background: '#4CAF50', fontWeight: 'bold' }}>
-                    {isLoading ? 'Starting Game...' : 'Start Game'}
-                </button>
-            </div>
+                </div>
 
-            <p style={{ fontSize: '0.9em', color: '#666', marginTop: '20px' }}>
-                Note: "Human" players must control their actions manually.
-            </p>
+                <p className="note-text">
+                    Note: "Human" players must control their actions manually.
+                </p>
+            </div>
         </div>
     );
 };

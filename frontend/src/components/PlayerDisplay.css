@@ -1,393 +1,256 @@
-/* PlayerDisplay.css - Premium Player UI */
+/* PlayerDisplay.css - Premium Glassmorphism UI */
 
 .player-display {
     position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
-    transition: all 0.3s ease;
-    padding: 5px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    padding: 8px;
 }
 
-/* Folded player state */
+/* Folded State */
 .player-display.folded {
-    opacity: 0.4;
-    filter: grayscale(60%);
+    opacity: 0.35;
+    filter: blur(1px) grayscale(70%);
 }
 
 .player-display.folded::after {
-    content: '✕';
+    content: '✖';
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 40px;
-    color: rgba(255, 0, 0, 0.6);
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    font-size: 45px;
+    color: rgba(239, 68, 68, 0.8);
+    background: radial-gradient(circle, rgba(0,0,0,0.4) 0%, transparent 70%);
+    padding: 20px;
+    border-radius: 50%;
     z-index: 15;
 }
 
-/* Avatar Circle - Compact premium style */
+/* Glass Orb Avatar */
 .player-avatar {
-    width: 55px;
-    height: 55px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
-    background: linear-gradient(145deg, #3a3a4a 0%, #2a2a35 50%, #1a1a25 100%);
-    border: 3px solid #555;
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.8) 100%);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
     position: relative;
     box-shadow:
-        0 4px 12px rgba(0, 0, 0, 0.4),
+        0 8px 16px rgba(0, 0, 0, 0.5),
         inset 0 2px 4px rgba(255, 255, 255, 0.1);
     transition: all 0.3s ease;
 }
 
-/* Active player - gold ring with timer */
+/* Active Player Neon Ring Tracker */
 .player-avatar.active {
-    border-color: #ffd700;
+    border-color: #60a5fa;
     box-shadow:
-        0 0 20px rgba(255, 215, 0, 0.5),
-        0 0 40px rgba(255, 215, 0, 0.3);
-    animation: activeGlow 2s ease-in-out infinite;
+        0 0 25px rgba(96, 165, 250, 0.4),
+        0 0 40px rgba(96, 165, 250, 0.2);
 }
 
-@keyframes activeGlow {
-
-    0%,
-    100% {
-        box-shadow: 0 0 20px rgba(255, 215, 0, 0.5), 0 0 40px rgba(255, 215, 0, 0.3);
-    }
-
-    50% {
-        box-shadow: 0 0 30px rgba(255, 215, 0, 0.7), 0 0 60px rgba(255, 215, 0, 0.4);
-    }
-}
-
-/* Timer ring animation */
 .player-avatar.active::before {
     content: '';
     position: absolute;
-    top: -5px;
-    left: -5px;
-    right: -5px;
-    bottom: -5px;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
     border-radius: 50%;
     border: 2px solid transparent;
-    border-top-color: #ffd700;
-    animation: timerRing 3s linear infinite;
+    border-top-color: #60a5fa;
+    border-right-color: rgba(96, 165, 250, 0.5);
+    animation: techScan 2s linear infinite;
+    box-shadow: 0 0 10px rgba(96, 165, 250, 0.3);
 }
 
-@keyframes timerRing {
-    from {
-        transform: rotate(0deg);
-    }
-
-    to {
-        transform: rotate(360deg);
-    }
+@keyframes techScan {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
-/* Winner state */
 .player-avatar.winner {
-    border-color: #4CAF50;
-    box-shadow: 0 0 25px rgba(76, 175, 80, 0.6), 0 0 50px rgba(76, 175, 80, 0.3);
-    animation: winnerPulse 1s ease-in-out infinite;
+    border-color: #34d399;
+    box-shadow: 0 0 30px rgba(52, 211, 153, 0.5), inset 0 0 10px rgba(52, 211, 153, 0.3);
+    animation: winPulse 1.2s ease-in-out infinite;
 }
 
-@keyframes winnerPulse {
-
-    0%,
-    100% {
-        transform: scale(1);
-    }
-
-    50% {
-        transform: scale(1.05);
-    }
+@keyframes winPulse {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 15px rgba(52, 211, 153, 0.6)); }
+    50% { transform: scale(1.08); filter: drop-shadow(0 0 30px rgba(52, 211, 153, 0.8)); }
 }
 
 .avatar-initial {
-    font-size: 22px;
-    font-weight: 700;
-    color: #fff;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    font-size: 26px;
+    line-height: 1;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
 }
 
-/* Dealer Button - Premium chip style */
+/* Dealer Chip Logo */
 .dealer-button {
     position: absolute;
-    bottom: -3px;
-    right: -3px;
-    width: 22px;
-    height: 22px;
-    background: linear-gradient(135deg, #fff 0%, #e0e0e0 50%, #fff 100%);
-    color: #1a1a1a;
+    bottom: -2px;
+    right: -2px;
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
+    color: #0f172a;
     border-radius: 50%;
-    border: 2px solid #333;
+    border: 2px solid #1e293b;
     font-size: 11px;
-    font-weight: 900;
+    font-weight: 800;
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 5;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.8);
 }
 
-/* Info Box - Compact glassmorphism */
+/* Frosted Glass Info Box */
 .player-info {
-    background: linear-gradient(145deg, rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.9));
-    padding: 5px 10px;
-    border-radius: 8px;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 6px 14px;
+    border-radius: 12px;
     text-align: center;
-    min-width: 80px;
-    backdrop-filter: blur(5px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    min-width: 90px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(0);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.player-display:hover .player-info {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
 }
 
 .player-name {
     font-size: 0.85em;
-    color: #fff;
+    color: #cbd5e1;
     margin: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 90px;
+    max-width: 100px;
     font-weight: 600;
+    letter-spacing: 0.5px;
 }
 
 .player-stack {
-    font-size: 0.9em;
-    color: #ffd700;
-    margin: 2px 0 0 0;
-    font-weight: 700;
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+    font-size: 0.95em;
+    color: #fca5a5;
+    margin: 3px 0 0 0;
+    font-weight: 800;
+    letter-spacing: 0.5px;
 }
 
-/* Hole Cards - Floating above avatar */
+/* Hole Cards Float */
 .player-cards {
     position: absolute;
-    top: -40px;
+    top: -45px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    gap: -18px;
+    gap: -22px;
     z-index: 3;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5));
 }
 
 .player-cards .poker-card {
-    margin: 0 -10px;
-    transition: all 0.2s ease;
-    box-shadow: -3px 3px 8px rgba(0, 0, 0, 0.4);
+    margin: 0 -12px;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .player-cards:hover .poker-card {
-    margin: 0 2px;
+    margin: 0 4px;
+    transform: translateY(-5px);
 }
 
-/* Current Round Bet - POSITIONED TOWARD CENTER */
+/* Bets Arrayed Toward Center */
 .player-bet {
     position: absolute;
     z-index: 10;
-    animation: betSlideIn 0.4s ease-out;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(6px);
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    animation: sleekBetSlide 0.5s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-/* Position bets toward table center based on seat position */
-.seat-0 .player-bet {
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    margin-bottom: 10px;
+.seat-0 .player-bet { bottom: 105%; left: 50%; transform: translateX(-50%); margin-bottom: 12px; }
+.seat-1 .player-bet { top: 25%; right: -25px; transform: translateX(100%); }
+.seat-2 .player-bet { bottom: 25%; right: -25px; transform: translateX(100%); }
+.seat-3 .player-bet { top: 105%; left: 50%; transform: translateX(-50%); margin-top: 12px; }
+.seat-4 .player-bet { bottom: 25%; left: -25px; transform: translateX(-100%); }
+.seat-5 .player-bet { top: 25%; left: -25px; transform: translateX(-100%); }
+
+@keyframes sleekBetSlide {
+    0% { opacity: 0; transform: translateX(-50%) scale(0.6) translateY(20px); }
+    100% { opacity: 1; transform: translateX(-50%) scale(1) translateY(0); }
 }
 
-.seat-1 .player-bet {
-    top: 30%;
-    right: -20px;
-    transform: translateX(100%);
-}
-
-.seat-2 .player-bet {
-    bottom: 30%;
-    right: -20px;
-    transform: translateX(100%);
-}
-
-.seat-3 .player-bet {
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    margin-top: 10px;
-}
-
-.seat-4 .player-bet {
-    bottom: 30%;
-    left: -20px;
-    transform: translateX(-100%);
-}
-
-.seat-5 .player-bet {
-    top: 30%;
-    left: -20px;
-    transform: translateX(-100%);
-}
-
-@keyframes betSlideIn {
-    from {
-        opacity: 0;
-        transform: translateX(-50%) scale(0.8);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateX(-50%) scale(1);
-    }
-}
-
-/* Last Action Bubble */
+/* Action Bubble Overhaul */
 .last-action-bubble {
     position: absolute;
-    top: -60px;
+    top: -70px;
     left: 50%;
     transform: translateX(-50%);
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(20, 20, 30, 0.95));
-    color: white;
-    padding: 5px 10px;
-    border-radius: 10px;
-    font-size: 0.75em;
-    font-weight: 600;
+    background: rgba(139, 92, 246, 0.15);
+    backdrop-filter: blur(12px);
+    color: #c4b5fd;
+    padding: 6px 14px;
+    border-radius: 14px;
+    font-size: 0.8em;
+    font-weight: 700;
     white-space: nowrap;
     pointer-events: none;
-    animation: bubblePop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    animation: vaporPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4), inset 0 0 10px rgba(139, 92, 246, 0.2);
     z-index: 20;
 }
 
-@keyframes bubblePop {
-    from {
-        transform: translateX(-50%) scale(0);
-        opacity: 0;
-    }
-
-    to {
-        transform: translateX(-50%) scale(1);
-        opacity: 1;
-    }
+@keyframes vaporPop {
+    0% { transform: translateX(-50%) scale(0) translateY(10px); opacity: 0; }
+    80% { transform: translateX(-50%) scale(1.1) translateY(0); opacity: 1; }
+    100% { transform: translateX(-50%) scale(1) translateY(0); opacity: 1; }
 }
 
-/* Payoff Display */
+/* Payout Floater */
 .payoff-display {
     position: absolute;
-    top: -75px;
+    top: -85px;
     left: 50%;
     transform: translateX(-50%);
-    font-weight: 800;
-    font-size: 1.1em;
+    font-weight: 900;
+    font-size: 1.25em;
     z-index: 25;
-    animation: payoffFloat 0.5s ease-out forwards;
+    animation: driftUp 0.8s ease-out forwards;
 }
 
 .payoff-display.win {
-    color: #4CAF50;
-    text-shadow: 0 0 15px rgba(76, 175, 80, 0.6);
+    color: #34d399;
+    text-shadow: 0 0 20px rgba(52, 211, 153, 0.6), 0 2px 4px rgba(0,0,0,0.8);
 }
 
 .payoff-display.loss {
-    color: #ff4444;
+    color: #f87171;
+    text-shadow: 0 0 20px rgba(248, 113, 113, 0.6), 0 2px 4px rgba(0,0,0,0.8);
 }
 
-@keyframes payoffFloat {
-    from {
-        opacity: 0;
-        transform: translateX(-50%) translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
-    }
-}
-
-/* ========================================
-   TABLET RESPONSIVE
-   ======================================== */
-@media screen and (max-width: 768px) {
-    .player-avatar {
-        width: 45px;
-        height: 45px;
-    }
-
-    .avatar-initial {
-        font-size: 18px;
-    }
-
-    .dealer-button {
-        width: 18px;
-        height: 18px;
-        font-size: 9px;
-    }
-
-    .player-info {
-        padding: 4px 8px;
-        min-width: 60px;
-    }
-
-    .player-name {
-        font-size: 0.75em;
-        max-width: 65px;
-    }
-
-    .player-stack {
-        font-size: 0.8em;
-    }
-
-    .player-cards {
-        top: -32px;
-    }
-
-    .last-action-bubble {
-        font-size: 0.65em;
-        padding: 4px 8px;
-    }
-}
-
-/* ========================================
-   SMALL MOBILE
-   ======================================== */
-@media screen and (max-width: 480px) {
-    .player-avatar {
-        width: 38px;
-        height: 38px;
-    }
-
-    .avatar-initial {
-        font-size: 15px;
-    }
-
-    .dealer-button {
-        width: 15px;
-        height: 15px;
-        font-size: 8px;
-    }
-
-    .player-info {
-        padding: 3px 6px;
-        min-width: 50px;
-    }
-
-    .player-name {
-        font-size: 0.65em;
-        max-width: 50px;
-    }
-
-    .player-stack {
-        font-size: 0.7em;
-    }
-
-    .player-cards {
-        top: -28px;
-    }
+@keyframes driftUp {
+    0% { opacity: 0; transform: translateX(-50%) translateY(15px) scale(0.9); }
+    20% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1.1); }
+    80% { opacity: 1; transform: translateX(-50%) translateY(-10px) scale(1); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-20px) scale(0.9); }
 }

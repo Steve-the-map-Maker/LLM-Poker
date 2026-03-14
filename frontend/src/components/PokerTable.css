@@ -1,179 +1,157 @@
-/* PokerTable.css - Premium Casino Table */
+/* PokerTable.css - Ultra Premium Dark Glassmorphism */
 
 .poker-table-container {
     position: relative;
     width: 100%;
-    max-width: 1000px;
-    height: 600px;
+    max-width: 1100px;
+    height: 650px;
     margin: 0 auto;
     background-color: transparent;
     display: flex;
     justify-content: center;
     align-items: center;
     overflow: hidden;
-    perspective: 1000px;
+    perspective: 1200px;
 }
 
-/* The actual felt table - Premium Casino Look */
+/* Base table styling */
 .poker-felt {
     position: relative;
-    width: 80%;
-    height: 70%;
-    /* Multi-layer felt texture */
-    background:
-        /* Felt texture noise */
-        url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E"),
-        /* Main felt gradient */
-        radial-gradient(ellipse at 50% 40%, #0d5c2e 0%, #084a24 40%, #063d1d 70%, #032d12 100%);
+    width: 82%;
+    height: 72%;
     border-radius: 200px;
-    /* Oval shape */
-
-    /* Wood grain border effect */
-    border: 18px solid transparent;
-    background-clip: padding-box;
-
-    box-shadow:
-        /* Inner felt shadow for depth */
-        inset 0 0 60px rgba(0, 0, 0, 0.7),
-        inset 0 0 120px rgba(0, 0, 0, 0.3),
-        /* Outer glow */
-        0 0 30px rgba(0, 0, 0, 0.5),
-        /* Drop shadow */
-        0 15px 40px rgba(0, 0, 0, 0.6);
-
+    background: radial-gradient(ellipse at center, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 1) 100%);
+    box-shadow: 
+        inset 0 0 40px rgba(0, 0, 0, 0.8),
+        inset 0 0 100px rgba(0, 0, 0, 0.5),
+        0 25px 50px -12px rgba(0, 0, 0, 0.5);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
 }
 
-/* Wood grain rail border */
+/* Glowing Neon Edge Outer Ring */
 .poker-felt::before {
     content: '';
     position: absolute;
-    top: -18px;
-    left: -18px;
-    right: -18px;
-    bottom: -18px;
-    border-radius: 210px;
-    background:
-        /* Wood grain pattern */
-        repeating-linear-gradient(90deg,
-            #4a3728 0px,
-            #5d4632 2px,
-            #3e2d20 4px,
-            #4a3728 6px);
+    top: -12px;
+    left: -12px;
+    right: -12px;
+    bottom: -12px;
+    border-radius: 212px;
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
     z-index: -1;
-    box-shadow:
-        inset 0 4px 8px rgba(255, 255, 255, 0.1),
-        inset 0 -4px 8px rgba(0, 0, 0, 0.4),
-        0 8px 24px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 
+        inset 0 4px 6px rgba(255, 255, 255, 0.05),
+        inset 0 -4px 6px rgba(0, 0, 0, 0.4),
+        0 0 30px rgba(59, 130, 246, 0.2), 
+        0 0 15px rgba(139, 92, 246, 0.2);
 }
 
-/* Inner rail highlight */
+/* Inner neon felt border */
 .poker-felt::after {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: 185px;
-    border: 3px solid rgba(255, 215, 0, 0.15);
+    top: 6px;
+    left: 6px;
+    right: 6px;
+    bottom: 6px;
+    border-radius: 194px;
+    border: 2px solid rgba(99, 102, 241, 0.3);
     pointer-events: none;
+    box-shadow: inset 0 0 20px rgba(99, 102, 241, 0.15);
 }
 
-/* Community cards area with glow */
+/* Community cards drop area */
 .community-cards-area {
     display: flex;
     justify-content: center;
-    gap: 12px;
-    margin-bottom: 20px;
-    min-height: 90px;
-    padding: 15px 25px;
-    background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.3) 0%, transparent 70%);
-    border-radius: 20px;
+    gap: 16px;
+    margin-bottom: 25px;
+    min-height: 100px;
+    padding: 20px 30px;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(12px);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
     position: relative;
+    box-shadow: 
+        inset 0 2px 10px rgba(0,0,0,0.4),
+        0 8px 30px rgba(0,0,0,0.5);
 }
 
-/* Subtle glow under community cards */
 .community-cards-area::before {
     content: '';
     position: absolute;
-    bottom: -5px;
+    bottom: -8px;
     left: 50%;
     transform: translateX(-50%);
-    width: 80%;
-    height: 20px;
-    background: radial-gradient(ellipse at center, rgba(255, 215, 0, 0.15) 0%, transparent 70%);
-    filter: blur(10px);
+    width: 60%;
+    height: 15px;
+    background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.4) 0%, transparent 70%);
+    filter: blur(8px);
 }
 
-/* Pot display - Premium styling */
+/* Pot wrapper */
 .table-center-info {
     text-align: center;
-    color: rgba(255, 255, 255, 0.95);
-    background: linear-gradient(145deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.8));
-    padding: 15px 30px;
-    border-radius: 40px;
-    border: 2px solid rgba(255, 215, 0, 0.4);
+    color: #f1f5f9;
+    background: rgba(30, 41, 59, 0.65);
+    backdrop-filter: blur(10px);
+    padding: 16px 36px;
+    border-radius: 50px;
+    border: 1px solid rgba(99, 102, 241, 0.3);
     box-shadow:
-        0 4px 20px rgba(0, 0, 0, 0.5),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1),
-        0 0 30px rgba(255, 215, 0, 0.1);
+        0 4px 15px rgba(0, 0, 0, 0.4),
+        0 0 20px rgba(99, 102, 241, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
-    backdrop-filter: blur(5px);
+    gap: 8px;
+    transition: all 0.3s ease;
 }
 
 .table-center-info h4 {
     margin: 0;
-    font-size: 1.5em;
-    font-weight: 700;
-    color: #ffd700;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 215, 0, 0.3);
+    font-size: 1.6em;
+    font-weight: 800;
+    color: #e2e8f0;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
     display: flex;
     align-items: center;
     gap: 12px;
 }
 
-/* Chip stack icon in pot display */
 .table-center-info h4::before {
-    content: '';
-    display: inline-block;
-    width: 28px;
-    height: 28px;
-    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 50%, #a93226 100%);
-    border: 3px solid #fff;
-    border-radius: 50%;
-    box-shadow:
-        inset 0 3px 6px rgba(255, 255, 255, 0.4),
-        inset 0 -3px 6px rgba(0, 0, 0, 0.3),
-        0 3px 6px rgba(0, 0, 0, 0.5),
-        0 0 0 2px rgba(255, 215, 0, 0.3);
-    position: relative;
+    content: '💰';
+    font-size: 1.2em;
+    filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5));
+    border: none;
+    background: transparent;
+    box-shadow: none;
 }
 
 .table-center-info div {
-    font-size: 0.85em;
-    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.8em;
+    color: #94a3b8;
     text-transform: uppercase;
     letter-spacing: 2px;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .card-placeholder {
-    width: 60px;
-    height: 84px;
-    border: 2px dashed rgba(255, 255, 255, 0.15);
+    width: 64px;
+    height: 90px;
+    border: 2px dashed rgba(255, 255, 255, 0.1);
     border-radius: 8px;
-    margin: 2px;
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(0, 0, 0, 0.25);
+    transition: all 0.2s ease;
 }
 
-/* Player Positioning Container */
+/* Floating Seats Layer */
 .seats-layer {
     position: absolute;
     top: 0;
@@ -187,409 +165,119 @@
     position: absolute;
     pointer-events: auto;
     transform: translate(-50%, -50%);
-    width: 140px;
-    text-align: center;
-    transition: transform 0.3s ease;
+    width: 150px;
+    display: flex;
+    justify-content: center;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Specific Seat Positions */
-.seat-0 {
-    top: 85%;
-    left: 50%;
-}
+.seat-0 { top: 88%; left: 50%; }
+.seat-1 { top: 62%; left: 12%; }
+.seat-2 { top: 22%; left: 12%; }
+.seat-3 { top: 10%; left: 50%; }
+.seat-4 { top: 22%; left: 88%; }
+.seat-5 { top: 62%; left: 88%; }
 
-/* Hero (Bottom) */
-.seat-1 {
-    top: 60%;
-    left: 15%;
-}
-
-/* Left */
-.seat-2 {
-    top: 25%;
-    left: 15%;
-}
-
-/* Top Left */
-.seat-3 {
-    top: 15%;
-    left: 50%;
-}
-
-/* Top */
-.seat-4 {
-    top: 25%;
-    left: 85%;
-}
-
-/* Top Right */
-.seat-5 {
-    top: 60%;
-    left: 85%;
-}
-
-/* Right */
-
-/* Hand Result Overlay */
+/* Hand Result Banner */
 .hand-result-overlay {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -150%);
-    background: linear-gradient(145deg, rgba(0, 0, 0, 0.9), rgba(20, 20, 20, 0.95));
-    color: var(--accent-gold);
-    padding: 15px 30px;
-    border-radius: 15px;
-    border: 2px solid var(--accent-gold);
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(16px);
+    color: #f8fafc;
+    padding: 20px 40px;
+    border-radius: 24px;
+    border: 1px solid rgba(167, 139, 250, 0.5);
     z-index: 100;
-    animation: winnerReveal 0.5s ease-out;
+    animation: winnerReveal 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     font-weight: bold;
     font-size: 1.2em;
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-    box-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
+    box-shadow: 
+        0 20px 40px rgba(0,0,0,0.6),
+        0 0 30px rgba(139, 92, 246, 0.4);
+    text-align: center;
 }
 
 @keyframes winnerReveal {
-    from {
-        opacity: 0;
-        transform: translate(-50%, -150%) scale(0.8);
-    }
-
-    to {
-        opacity: 1;
-        transform: translate(-50%, -150%) scale(1);
-    }
+    from { opacity: 0; transform: translate(-50%, -120%) scale(0.9); }
+    to { opacity: 1; transform: translate(-50%, -150%) scale(1); }
 }
 
 .winner-name {
-    font-size: 1.4em;
+    font-size: 1.5em;
     font-weight: 800;
-    color: #ffd700;
-    margin-bottom: 5px;
+    background: linear-gradient(135deg, #a78bfa, #818cf8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
 }
 
 .winning-hand-name {
-    font-size: 1.1em;
+    font-size: 1em;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.9);
+    color: #cbd5e1;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    background: linear-gradient(90deg, rgba(255, 215, 0, 0.2), rgba(255, 215, 0, 0.3), rgba(255, 215, 0, 0.2));
-    padding: 5px 15px;
+    letter-spacing: 1.5px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 6px 16px;
     border-radius: 20px;
-    margin-top: 5px;
+    display: inline-block;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Winner seat glow */
+/* Winner soft glowing focus */
 .winner-seat {
-    animation: winnerSeatPulse 1.5s ease-in-out infinite;
+    animation: winnerSeatPulse 2s ease-in-out infinite;
 }
 
 @keyframes winnerSeatPulse {
-
-    0%,
-    100% {
-        filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
-    }
-
-    50% {
-        filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.8));
-    }
+    0%, 100% { filter: drop-shadow(0 0 15px rgba(139, 92, 246, 0.4)); }
+    50% { filter: drop-shadow(0 0 30px rgba(139, 92, 246, 0.8)); transform: translate(-50%, -50%) scale(1.05); }
 }
 
-/* AI Thinking Indicator - Enhanced */
+/* AI Thinking Tracker */
 .ai-thinking-indicator {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-top: 10px;
-    padding: 10px 20px;
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(59, 130, 246, 0.25));
-    border-radius: 25px;
-    border: 1px solid rgba(139, 92, 246, 0.5);
-    animation: thinkingPulse 2s ease-in-out infinite;
-    backdrop-filter: blur(5px);
+    margin-top: 15px;
+    padding: 12px 24px;
+    background: rgba(30, 41, 59, 0.6);
+    border-radius: 30px;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 .thinking-dots {
     display: flex;
-    gap: 5px;
+    gap: 6px;
 }
 
 .thinking-dots span {
-    width: 10px;
-    height: 10px;
-    background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+    width: 8px;
+    height: 8px;
+    background: #38bdf8;
     border-radius: 50%;
-    animation: dotBounce 1.4s ease-in-out infinite;
-    box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+    animation: logicBounce 1.2s ease-in-out infinite;
+    box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
 }
 
-.thinking-dots span:nth-child(1) {
-    animation-delay: 0s;
-}
-
-.thinking-dots span:nth-child(2) {
-    animation-delay: 0.2s;
-}
-
-.thinking-dots span:nth-child(3) {
-    animation-delay: 0.4s;
-}
+.thinking-dots span:nth-child(1) { animation-delay: 0s; }
+.thinking-dots span:nth-child(2) { animation-delay: 0.15s; }
+.thinking-dots span:nth-child(3) { animation-delay: 0.3s; }
 
 .thinking-text {
-    color: rgba(255, 255, 255, 0.95);
+    color: #f1f5f9;
     font-size: 0.9em;
     font-weight: 600;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    letter-spacing: 0.5px;
 }
 
-@keyframes dotBounce {
-
-    0%,
-    80%,
-    100% {
-        transform: translateY(0);
-        opacity: 0.6;
-    }
-
-    40% {
-        transform: translateY(-8px);
-        opacity: 1;
-    }
-}
-
-@keyframes thinkingPulse {
-
-    0%,
-    100% {
-        box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
-    }
-
-    50% {
-        box-shadow: 0 0 25px rgba(139, 92, 246, 0.6);
-    }
-}
-
-/* ========================================
-   TABLET RESPONSIVE
-   ======================================== */
-@media screen and (max-width: 1024px) {
-    .poker-table-container {
-        height: 500px;
-        max-width: 100%;
-    }
-
-    .poker-felt {
-        width: 85%;
-        height: 65%;
-        border-width: 14px;
-        border-radius: 150px;
-    }
-
-    .poker-felt::before {
-        top: -14px;
-        left: -14px;
-        right: -14px;
-        bottom: -14px;
-        border-radius: 160px;
-    }
-
-    .seat {
-        width: 120px;
-    }
-
-    .community-cards-area {
-        gap: 8px;
-    }
-
-    .table-center-info {
-        padding: 10px 20px;
-    }
-
-    .table-center-info h4 {
-        font-size: 1.3em;
-    }
-}
-
-/* ========================================
-   MOBILE RESPONSIVE
-   ======================================== */
-@media screen and (max-width: 768px) {
-    .poker-table-container {
-        height: 380px;
-        padding: 10px;
-    }
-
-    .poker-felt {
-        width: 95%;
-        height: 58%;
-        border-width: 10px;
-        border-radius: 100px;
-    }
-
-    .poker-felt::before {
-        top: -10px;
-        left: -10px;
-        right: -10px;
-        bottom: -10px;
-        border-radius: 105px;
-    }
-
-    .community-cards-area {
-        gap: 4px;
-        margin-bottom: 10px;
-        min-height: 65px;
-        padding: 10px 15px;
-    }
-
-    .card-placeholder {
-        width: 45px;
-        height: 63px;
-    }
-
-    .table-center-info {
-        padding: 8px 16px;
-        border-radius: 25px;
-    }
-
-    .table-center-info h4 {
-        font-size: 1.1em;
-        gap: 8px;
-    }
-
-    .table-center-info h4::before {
-        width: 20px;
-        height: 20px;
-    }
-
-    .table-center-info div {
-        font-size: 0.7em;
-        letter-spacing: 1px;
-    }
-
-    .seat {
-        width: 85px;
-    }
-
-    .seat-0 {
-        top: 88%;
-        left: 50%;
-    }
-
-    .seat-1 {
-        top: 65%;
-        left: 10%;
-    }
-
-    .seat-2 {
-        top: 20%;
-        left: 10%;
-    }
-
-    .seat-3 {
-        top: 8%;
-        left: 50%;
-    }
-
-    .seat-4 {
-        top: 20%;
-        left: 90%;
-    }
-
-    .seat-5 {
-        top: 65%;
-        left: 90%;
-    }
-
-    .hand-result-overlay {
-        padding: 10px 18px;
-        font-size: 1em;
-        border-radius: 10px;
-    }
-
-    .ai-thinking-indicator {
-        padding: 6px 14px;
-        border-radius: 18px;
-        gap: 8px;
-    }
-
-    .thinking-dots span {
-        width: 7px;
-        height: 7px;
-    }
-
-    .thinking-text {
-        font-size: 0.8em;
-    }
-}
-
-/* ========================================
-   SMALL MOBILE
-   ======================================== */
-@media screen and (max-width: 480px) {
-    .poker-table-container {
-        height: 320px;
-    }
-
-    .poker-felt {
-        width: 98%;
-        height: 52%;
-        border-width: 8px;
-        border-radius: 70px;
-    }
-
-    .poker-felt::before {
-        top: -8px;
-        left: -8px;
-        right: -8px;
-        bottom: -8px;
-        border-radius: 75px;
-    }
-
-    .community-cards-area {
-        gap: 2px;
-        min-height: 55px;
-        padding: 8px 10px;
-    }
-
-    .table-center-info {
-        padding: 6px 12px;
-    }
-
-    .table-center-info h4 {
-        font-size: 0.95em;
-    }
-
-    .seat {
-        width: 70px;
-    }
-
-    .seat-0 {
-        top: 90%;
-    }
-
-    .seat-1 {
-        top: 68%;
-        left: 6%;
-    }
-
-    .seat-2 {
-        top: 18%;
-        left: 6%;
-    }
-
-    .seat-3 {
-        top: 5%;
-    }
-
-    .seat-4 {
-        top: 18%;
-        left: 94%;
-    }
-
-    .seat-5 {
-        top: 68%;
-        left: 94%;
-    }
+@keyframes logicBounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.5; }
+    40% { transform: translateY(-6px); opacity: 1; }
 }

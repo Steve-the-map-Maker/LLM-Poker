@@ -16,7 +16,7 @@ class GeminiAI(AIPlayer):
     _last_request_time = 0
     _min_request_interval = 1.0  # Reduced to 1.0s for paid tier (mostly to prevent race conditions)
     
-    def __init__(self, model_name: str = "gemini-3-flash-preview", custom_prompt: str = None):
+    def __init__(self, model_name: str = "gemini-3.1-flash-lite-preview", custom_prompt: str = None):
         # Prioritize GEMINI_API_KEY as per .env standard
         self.api_key = settings.GEMINI_API_KEY
         self.model = None
@@ -40,7 +40,7 @@ class GeminiAI(AIPlayer):
         
         # 1. Format state into prompt (pass custom_prompt for personalized AI behavior)
         prompt = format_poker_state_for_llm(pk_state, player_index, game_id, player_name, [], self.custom_prompt)
-        # Add strict formatting instruction for Gemini 3 which tends to be talkative
+        # Add strict formatting instruction for Gemini 3.1 which tends to be talkative
         prompt += "\n\nCRITICAL: You must include one of these EXACT strings in your response: FOLD, CHECK, CALL, or RAISE_TO <amount>."
         
         print(f"\n--- Prompt for {player_name} (Gemini: {self.model_name}) ---")
@@ -72,7 +72,7 @@ class GeminiAI(AIPlayer):
                 
             except Exception as e:
                 error_str = str(e)
-                is_rate_limit = "429" in error_str or "quota" in error_str.lower() or "rate" in error_str.lower()
+                is_rate_limit = "429" in error_str or "quota" in error_str.lower() or "rate limit" in error_str.lower()
                 
                 if is_rate_limit:
                     if attempt < max_retries - 1:
